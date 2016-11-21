@@ -1,19 +1,19 @@
 {
-  "name": "l2-lib",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/pietie/l2-lib/issues"
   },
+  "description": "",
+  "homepage": "https://github.com/pietie/l2-lib#readme",
+  "license": "ISC",
+  "main": "dist",
+  "name": "l2-lib",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pietie/l2-lib.git"
   },
-  "author": "",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://github.com/pietie/l2-lib/issues"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "homepage": "https://github.com/pietie/l2-lib#readme"
+  "version": "1.0.0"
 }
