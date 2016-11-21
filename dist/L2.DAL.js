@@ -385,33 +385,9 @@ var jsDAL;
                     break;
                 case ApiResponseType.ExclamationModal:
                     L2_1.L2.exclamation(apiResponse.Message, apiResponse.Title);
-                    //BootstrapDialog.alert({
-                    //    title: apiResponse.Title ? apiResponse.Title : "",
-                    //    message: apiResponse.Message,
-                    //    type: BootstrapDialog.TYPE_WARNING,
-                    //    closable: true,
-                    //    draggable: true,
-                    //    buttonLabel: 'Close',
-                    //    callback: function (result) {
-                    //        // result will be true if button was click, while it will be false if users close the dialog directly.
-                    //        //alert('Result is: ' + result);
-                    //    }
-                    //});
                     throw new ApiResponseEndThenChain();
                 case ApiResponseType.Exception:
-                    alert("exception: " + apiResponse.Message);
-                    //BootstrapDialog.alert({
-                    //    title: "Application error occurred",
-                    //    message: apiResponse.Message,
-                    //    type: BootstrapDialog.TYPE_DANGER,
-                    //    closable: true,
-                    //    draggable: true,
-                    //    buttonLabel: 'Close',
-                    //    callback: function (result) {
-                    //        // result will be true if button was click, while it will be false if users close the dialog directly.
-                    //        //alert('Result is: ' + result);
-                    //    }
-                    //});
+                    L2_1.L2.handleException(apiResponse);
                     throw new ApiResponseEndThenChain();
             }
             return apiResponse;
@@ -503,10 +479,6 @@ var jsDAL;
     jsDAL.Deferred = Deferred;
     var Sproc /*implements Thenable<any>*/ = (function () {
         function Sproc /*implements Thenable<any>*/(schema, routine, params, options) {
-            //alert("called");
-            // Exec -> Query/Scalar ??
-            // Select(column1, column2)....
-            // 
             // TODO: turn this into a GET property
             this.deferred = null;
             this.schema = null;
@@ -526,7 +498,6 @@ var jsDAL;
             return typeof (val.ExecQuery) === "function" && typeof (val.routine) === "string" && typeof (val.routineParams) === "object";
         };
         Sproc /*implements Thenable<any>*/.prototype.getExecPacket = function () {
-            //this.dbSource = "799d4f23-18ab-455f-8dd8-11c5d80b6ab5";
             return {
                 dbSource: this.dbSource,
                 dbConnection: Server.dbConnection,
@@ -545,6 +516,8 @@ var jsDAL;
         };
         Sproc /*implements Thenable<any>*/.prototype.Exec = function (method, options) {
             var _this = this;
+            if (!method || method == "")
+                throw "'method' must be specified. Consider using the methods ExecQuery or ExecNonQuery.";
             // default settings
             var settings = {
                 AutoSetTokenGuid: true,
