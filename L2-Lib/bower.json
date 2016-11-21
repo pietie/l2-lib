@@ -15,9 +15,9 @@
     "bower_components",
     "test",
     "tests",
-    "*.ts",
-    "*.config",
-    "*.json"
+    "**/*.ts",
+    "**/*.config",
+    "**/*.json"
   ]
 }
  
