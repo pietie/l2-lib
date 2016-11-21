@@ -1,0 +1,19 @@
+{
+  "name": "l2-lib",
+  "version": "0.0.1",
+  "authors": [
+    "pietie <pieter@L2.co.za>"
+  ],
+  "description": "L2 common library",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
