@@ -5,7 +5,7 @@
     
   ],
   "description": "L2 common library",
-  "main": "/dist",
+  "main": "/dist/L2.d.ts",
   "license": "PRIVATE",
   "homepage": "",
   "private": true,
