@@ -19,7 +19,7 @@ export declare module DAL {
     export interface UDF { }
 }
 
-export class UI {
+class UI {
 
     private static IsNullOrEmpty(val: string):boolean {
         return val == null || val == "";

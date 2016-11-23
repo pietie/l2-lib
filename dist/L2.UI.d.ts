@@ -13,12 +13,6 @@ export declare module DAL {
     interface UDF {
     }
 }
-export declare class UI {
-    private static IsNullOrEmpty(val);
-    static A: (options?: AnchorOptions) => any;
-    static NewGrid: (options?: NewGridOptions & DataTables.Settings) => void;
-    static NewCbo(options?: NewCboOptions): any;
-}
 export interface NewCboOptions {
     id?: string;
     name?: string;
