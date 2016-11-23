@@ -1,4 +1,4 @@
-interface JWT {
+export interface JWT {
     access_token?: string;
     expires_in?: number;
     token_type?: string;
@@ -67,4 +67,4 @@ declare module jsDAL {
         Exec(options?: IExecDefaults): Promise<any>;
     }
 }
-export { JWT, jsDAL };
+export default jsDAL;

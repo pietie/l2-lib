@@ -388,4 +388,6 @@ interface AnchorOptions {
     target?: string | HTMLElement | JQuery;
 }
 
-export { JQuery, AnchorOptions, DataTables, DAL,  NewGridOptions, NewCboOptions, UI }
+
+export { JQuery, AnchorOptions, DataTables, DAL, NewGridOptions, NewCboOptions }
+export default UI;

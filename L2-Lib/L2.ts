@@ -147,4 +147,4 @@ module L2 {
 
 }
 
-export { L2 }
+export default L2;

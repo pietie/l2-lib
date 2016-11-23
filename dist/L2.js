@@ -131,7 +131,7 @@ System.register([], function(exports_1, context_1) {
                     return StorageObject;
                 }());
             })(L2 || (L2 = {}));
-            exports_1("L2", L2);
+            exports_1("default",L2);
         }
     }
 });

@@ -1,4 +1,4 @@
-﻿import { L2 } from "./L2"
+﻿import L2 from "./L2"
 
 
 // TODO: Clean-up the polyfills below - rather include the necessary dependency refs?
@@ -199,7 +199,7 @@ interface Error {
     response: any;
 }
 
-interface JWT {
+export interface JWT {
     access_token?: string;
     expires_in?: number;
     token_type?: string;
@@ -767,5 +767,4 @@ module jsDAL {
 
 }
 
-
-export { JWT, jsDAL } 
+export default jsDAL;

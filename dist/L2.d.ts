@@ -14,4 +14,4 @@ declare module L2 {
         private static processRequest<T>(store, key, value, storeName);
     }
 }
-export { L2 };
+export default L2;

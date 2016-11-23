@@ -266,7 +266,7 @@ System.register([], function(exports_1, context_1) {
                 };
                 return UI;
             }());
-            exports_1("UI", UI);
+            exports_1("default",UI);
         }
     }
 });

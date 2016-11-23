@@ -335,8 +335,8 @@ System.register(["./L2"], function(exports_1, context_1) {
                         // look for a json result
                         if (contentType && contentType.indexOf("application/json") !== -1) {
                             return response.json().then(function (json) {
-                                L2_1.L2.exclamation(json.Message, "Http status code " + response.status);
-                                L2_1.L2.handleException(new Error(JSON.stringify(json)));
+                                L2_1.default.exclamation(json.Message, "Http status code " + response.status);
+                                L2_1.default.handleException(new Error(JSON.stringify(json)));
                                 // TODO:
                                 //!window.ICE.LogJavascriptErrorToDb(new Error(JSON.stringify(json)), null, { origin: "checkHttpStatus 01", fetch: fetchDetails });
                                 throw json;
@@ -344,8 +344,8 @@ System.register(["./L2"], function(exports_1, context_1) {
                         }
                         else {
                             return response.text().then(function (text) {
-                                L2_1.L2.exclamation(text, "Http status code 02 " + response.status);
-                                L2_1.L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                                L2_1.default.exclamation(text, "Http status code 02 " + response.status);
+                                L2_1.default.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
                                 throw response;
                             });
                         }
@@ -373,7 +373,7 @@ System.register(["./L2"], function(exports_1, context_1) {
                         var fetchDetails = null;
                         if (ex.fetch)
                             fetchDetails = JSON.stringify(ex.fetch);
-                        L2_1.L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+                        L2_1.default.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
                         var msg = ex;
                         if (ex.Message)
                             msg = ex.Message;
@@ -389,13 +389,13 @@ System.register(["./L2"], function(exports_1, context_1) {
                             case ApiResponseType.Success:
                                 return apiResponse;
                             case ApiResponseType.InfoMsg:
-                                L2_1.L2.info(apiResponse.Message);
+                                L2_1.default.info(apiResponse.Message);
                                 break;
                             case ApiResponseType.ExclamationModal:
-                                L2_1.L2.exclamation(apiResponse.Message, apiResponse.Title);
+                                L2_1.default.exclamation(apiResponse.Message, apiResponse.Title);
                                 throw new ApiResponseEndThenChain();
                             case ApiResponseType.Exception:
-                                L2_1.L2.handleException(apiResponse);
+                                L2_1.default.handleException(apiResponse);
                                 throw new ApiResponseEndThenChain();
                         }
                         return apiResponse;
@@ -430,7 +430,7 @@ System.register(["./L2"], function(exports_1, context_1) {
                             CommandTimeoutInSeconds: 60
                         };
                         options = options || {};
-                        settings = L2_1.L2.extend(settings, options);
+                        settings = L2_1.default.extend(settings, options);
                         return new Promise(function (resolve, reject) {
                             var batch = [];
                             for (var ix = 0; ix < _this.routineList.length; ix++) {
@@ -536,8 +536,8 @@ System.register(["./L2"], function(exports_1, context_1) {
                         var mappedParams = [];
                         options = options || {};
                         this.constructorOptions = this.constructorOptions || {};
-                        options = L2_1.L2.extend(options, this.constructorOptions);
-                        settings = L2_1.L2.extend(settings, options);
+                        options = L2_1.default.extend(options, this.constructorOptions);
+                        settings = L2_1.default.extend(settings, options);
                         // TODO: can we just assume TypeScript's __extends exists?
                         //?__extends(options, this.constructorOptions);
                         //?__extends(settings, options);
@@ -608,8 +608,7 @@ System.register(["./L2"], function(exports_1, context_1) {
                 }(Sproc));
                 jsDAL.UDF = UDF;
             })(jsDAL || (jsDAL = {}));
-            exports_1("JWT", JWT);
-            exports_1("jsDAL", jsDAL);
+            exports_1("default",jsDAL);
         }
     }
 });
