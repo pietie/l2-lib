@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) { for (var p in b) i
 
 // TODO: Get rid of jQuery dependency!!!
 
-export declare namespace DataTables {
+declare namespace DataTables {
     interface Settings {
         columns?: any;
     }
@@ -11,10 +11,11 @@ export declare namespace DataTables {
 
 }
 declare var $: any;
-export interface JQuery { }
-export interface ISprocExecGeneric0<T, U> { }
 
-export declare module DAL {
+interface JQuery { }
+interface ISprocExecGeneric0<T, U> { }
+
+declare module DAL {
     export interface Sproc { }
     export interface UDF { }
 }
@@ -348,12 +349,12 @@ class UI {
 
 }
 
-export interface NewCboOptions {
+interface NewCboOptions {
     id?: string;
     name?: string;
     chosen?: boolean;
     target?: string | HTMLElement | JQuery;
-    sproc?: DAL.Sproc | DAL.UDF | ISprocExecGeneric0<any, any>
+    sproc?: DAL.Sproc | DAL.UDF /*| ISprocExecGeneric0<any, any>*/
     data?: any;   // do we need both data and sproc? Are they mutually exclusive?
     txt?: string; // displayField
     val?: string;  // valueField
@@ -365,9 +366,9 @@ export interface NewCboOptions {
     multiSelect?: boolean;
 }
 
-export interface NewGridOptions {
+interface NewGridOptions {
     target?: string | HTMLElement | JQuery | any;
-    sproc?: DAL.Sproc | DAL.UDF | ISprocExecGeneric0<any, any>
+    sproc?: DAL.Sproc | DAL.UDF /*| ISprocExecGeneric0<any, any>*/
     data?: any;
     retrieve?: boolean;
     paging?: boolean;
@@ -379,10 +380,12 @@ export interface NewGridOptions {
     //columns?: any[];
 }
 
-export interface AnchorOptions {
+interface AnchorOptions {
     text?: string;
     href?: string | Object;
     visible?: boolean;
     cssClass?: string;
     target?: string | HTMLElement | JQuery;
 }
+
+export { JQuery, AnchorOptions, DataTables, DAL,  NewGridOptions, NewCboOptions, UI }

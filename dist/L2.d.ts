@@ -1,4 +1,4 @@
-export declare module L2 {
+declare module L2 {
     function fetchJson(): void;
     function info(msg: string, title?: string): void;
     function success(msg: string, title?: string): void;
@@ -14,3 +14,4 @@ export declare module L2 {
         private static processRequest<T>(store, key, value, storeName);
     }
 }
+export { L2 };

@@ -1,9 +1,9 @@
-export interface JWT {
+interface JWT {
     access_token?: string;
     expires_in?: number;
     token_type?: string;
 }
-export declare module jsDAL {
+declare module jsDAL {
     class Server {
         static serverUrl: string;
         static dbConnection: string;
@@ -67,3 +67,4 @@ export declare module jsDAL {
         Exec(options?: IExecDefaults): Promise<any>;
     }
 }
+export { JWT, jsDAL };

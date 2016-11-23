@@ -199,14 +199,14 @@ interface Error {
     response: any;
 }
 
-export interface JWT {
+interface JWT {
     access_token?: string;
     expires_in?: number;
     token_type?: string;
 }
 
 
-export module jsDAL {
+module jsDAL {
 
     export class Server {
         //private static _serverUrl: string;
@@ -766,3 +766,6 @@ export module jsDAL {
 
 
 }
+
+
+export { JWT, jsDAL } 

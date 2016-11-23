@@ -2,7 +2,7 @@
 
 // TODO: Implement DI-based messaging service?
 
-export module L2 {
+module L2 {
     export function fetchJson() {
         // TODO!!!
     }
@@ -146,3 +146,5 @@ export module L2 {
     }
 
 }
+
+export { L2 }

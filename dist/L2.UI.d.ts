@@ -1,24 +1,28 @@
-export declare namespace DataTables {
+declare namespace DataTables {
     interface Settings {
         columns?: any;
     }
 }
-export interface JQuery {
+interface JQuery {
 }
-export interface ISprocExecGeneric0<T, U> {
-}
-export declare module DAL {
+declare module DAL {
     interface Sproc {
     }
     interface UDF {
     }
 }
-export interface NewCboOptions {
+declare class UI {
+    private static IsNullOrEmpty(val);
+    static A: (options?: AnchorOptions) => any;
+    static NewGrid: (options?: NewGridOptions & DataTables.Settings) => void;
+    static NewCbo(options?: NewCboOptions): any;
+}
+interface NewCboOptions {
     id?: string;
     name?: string;
     chosen?: boolean;
     target?: string | HTMLElement | JQuery;
-    sproc?: DAL.Sproc | DAL.UDF | ISprocExecGeneric0<any, any>;
+    sproc?: DAL.Sproc | DAL.UDF;
     data?: any;
     txt?: string;
     val?: string;
@@ -29,9 +33,9 @@ export interface NewCboOptions {
     autoDestroy?: boolean;
     multiSelect?: boolean;
 }
-export interface NewGridOptions {
+interface NewGridOptions {
     target?: string | HTMLElement | JQuery | any;
-    sproc?: DAL.Sproc | DAL.UDF | ISprocExecGeneric0<any, any>;
+    sproc?: DAL.Sproc | DAL.UDF;
     data?: any;
     retrieve?: boolean;
     paging?: boolean;
@@ -41,10 +45,11 @@ export interface NewGridOptions {
     autoDestroy?: boolean;
     callBack?: () => void;
 }
-export interface AnchorOptions {
+interface AnchorOptions {
     text?: string;
     href?: string | Object;
     visible?: boolean;
     cssClass?: string;
     target?: string | HTMLElement | JQuery;
 }
+export { JQuery, AnchorOptions, DataTables, DAL, NewGridOptions, NewCboOptions, UI };
