@@ -599,5 +599,5 @@ var jsDAL;
         return UDF;
     }(Sproc));
     jsDAL.UDF = UDF;
-})(jsDAL || (jsDAL = {}));
+})(jsDAL = exports.jsDAL || (exports.jsDAL = {}));
 //# sourceMappingURL=L2.DAL.js.map
