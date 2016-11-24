@@ -2,7 +2,7 @@
 
 // TODO: Implement DI-based messaging service?
 
-class toastr {
+export class toastr {
     static info(msg, title) {
         alert("info:" + msg);
     }

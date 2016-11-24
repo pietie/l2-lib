@@ -1,3 +1,9 @@
+export declare class toastr {
+    static info(msg: any, title: any): void;
+    static success(msg: any, title: any): void;
+    static warning(msg: any, title: any): void;
+    static error(msg: any): void;
+}
 declare module L2 {
     function fetchJson(): void;
     function info(msg: string, title?: string): void;

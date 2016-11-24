@@ -1,5 +1,24 @@
+//declare var toastr: any;
 "use strict";
 // TODO: Implement DI-based messaging service?
+var toastr = (function () {
+    function toastr() {
+    }
+    toastr.info = function (msg, title) {
+        alert("info:" + msg);
+    };
+    toastr.success = function (msg, title) {
+        alert("success:" + msg);
+    };
+    toastr.warning = function (msg, title) {
+        alert("warning:" + msg);
+    };
+    toastr.error = function (msg) {
+        alert("error:" + msg);
+    };
+    return toastr;
+}());
+exports.toastr = toastr;
 var L2;
 (function (L2) {
     function fetchJson() {
