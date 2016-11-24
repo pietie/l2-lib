@@ -1,6 +1,22 @@
-﻿declare var toastr: any;
+﻿//declare var toastr: any;
 
 // TODO: Implement DI-based messaging service?
+
+class toastr {
+    static info(msg, title) {
+        alert("info:" + msg);
+    }
+    static success(msg, title) {
+        alert("success:" + msg);
+    }
+    static warning(msg, title) {
+        alert("warning:" + msg);
+    }
+    static error(msg) {
+        alert("error:" + msg);
+    }
+}
+
 
 module L2 {
     export function fetchJson() {
