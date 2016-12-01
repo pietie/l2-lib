@@ -1,5 +1,5 @@
-//declare var toastr: any;
 "use strict";
+var L2_DAL_1 = require("./L2.DAL");
 // TODO: Implement DI-based messaging service?
 var toastr = (function () {
     function toastr() {
@@ -144,6 +144,23 @@ var L2;
         };
         return StorageObject;
     }());
+    function clientIP() {
+        return new Promise(function (resolve, reject) {
+            fetch(L2_DAL_1.default.Server.serverUrl + "/util/clientip")
+                .then(function (r) {
+                if (r.status >= 200 && r.status < 300) {
+                    return r;
+                }
+                else {
+                    reject(r);
+                }
+            })
+                .then(function (r) {
+                resolve(r);
+            }).catch(function (e) { return reject(e); });
+        });
+    }
+    L2.clientIP = clientIP;
 })(L2 || (L2 = {}));
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = L2;

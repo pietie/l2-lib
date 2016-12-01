@@ -1,4 +1,4 @@
-﻿//declare var toastr: any;
+﻿import jsDAL from "./L2.DAL"
 
 // TODO: Implement DI-based messaging service?
 
@@ -161,6 +161,19 @@ module L2 {
 
     }
 
+
+    export function clientIP(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            fetch(`${jsDAL.Server.serverUrl}/util/clientip`)
+                .then((r) => {
+                    if (r.status >= 200 && r.status < 300) { return r; }
+                    else { reject(r); }
+                })
+                .then((r:any) => {
+                    resolve(r);
+                }).catch(e=>reject(e));
+        });
+    }
 }
 
 export default L2;

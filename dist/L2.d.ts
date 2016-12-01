@@ -19,5 +19,6 @@ declare module L2 {
         static removeLocalItem: (key: any) => void;
         private static processRequest<T>(store, key, value, storeName);
     }
+    function clientIP(): Promise<string>;
 }
 export default L2;
