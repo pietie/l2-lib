@@ -66,5 +66,9 @@ declare module jsDAL {
     class UDF extends Sproc {
         Exec(options?: IExecDefaults): Promise<any>;
     }
+    class ServerVariables {
+        private static PREFIX_MARKER;
+        static ClientIP: string;
+    }
 }
 export default jsDAL;

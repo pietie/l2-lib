@@ -164,14 +164,14 @@ module L2 {
 
     export function clientIP(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            fetch(`${jsDAL.Server.serverUrl}/util/clientip`)
+            fetch(`${jsDAL.Server.serverUrl}/api/util/clientip`)
                 .then((r) => {
                     if (r.status >= 200 && r.status < 300) { return r; }
-                    else { reject(r); }
+                    else { resolve(null); }
                 })
                 .then((r:any) => {
                     resolve(r);
-                }).catch(e=>reject(e));
+                }).catch(e=>resolve(null));
         });
     }
 }

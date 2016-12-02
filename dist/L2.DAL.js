@@ -599,6 +599,20 @@ var jsDAL;
         return UDF;
     }(Sproc));
     jsDAL.UDF = UDF;
+    var ServerVariables = (function () {
+        function ServerVariables() {
+        }
+        Object.defineProperty(ServerVariables, "ClientIP", {
+            get: function () {
+                return ServerVariables.PREFIX_MARKER + ".RemoteClient.IP";
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ServerVariables.PREFIX_MARKER = "$jsDAL$";
+        return ServerVariables;
+    }());
+    jsDAL.ServerVariables = ServerVariables;
 })(jsDAL || (jsDAL = {}));
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = jsDAL;

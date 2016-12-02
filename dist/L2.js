@@ -146,18 +146,18 @@ var L2;
     }());
     function clientIP() {
         return new Promise(function (resolve, reject) {
-            fetch(L2_DAL_1.default.Server.serverUrl + "/util/clientip")
+            fetch(L2_DAL_1.default.Server.serverUrl + "/api/util/clientip")
                 .then(function (r) {
                 if (r.status >= 200 && r.status < 300) {
                     return r;
                 }
                 else {
-                    reject(r);
+                    resolve(null);
                 }
             })
                 .then(function (r) {
                 resolve(r);
-            }).catch(function (e) { return reject(e); });
+            }).catch(function (e) { return resolve(null); });
         });
     }
     L2.clientIP = clientIP;
