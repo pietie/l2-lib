@@ -451,7 +451,7 @@ module jsDAL {
     function parseJSON(response) {
         return response.json().then((json) => {
             // if still a string after parsing once and it *looks* like json...
-            if (typeof (json) === "string" && json.startsWith("{") && json.endsWith("}")) return JSON.parse(json);
+            if (typeof (json) === "string" && (<any>json).startsWith("{") && (<any>json).endsWith("}")) return JSON.parse(json);
             return json;
         });
     }

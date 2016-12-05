@@ -6,46 +6,152 @@ export class toastr {
     static info(msg, title) {
         alert("info:" + msg);
     }
+
     static success(msg, title) {
         alert("success:" + msg);
     }
+
     static warning(msg, title) {
         alert("warning:" + msg);
     }
+
     static error(msg) {
         alert("error:" + msg);
     }
 }
 
+export interface IL2OutputMessageHandler {
+    info(msg: string, title?: string);
 
-module L2 {
-    export function fetchJson() {
-        // TODO!!!
+    success(msg: string, title?: string);
+
+    warning(msg: string, title?: string);
+
+    exclamation(msg: string, title?: string);
+
+    handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object);
+
+}
+
+export class BrowserStore {
+    constructor() {
+
     }
 
-    export function info(msg: string, title?: string) {
-        toastr.info(msg, title);
+    public static local<T>(key: string, value?: T): T {
+        return BrowserStore.processRequest<T>(window.localStorage, key, value, "Local");
     }
 
-    export function success(msg: string, title?: string) {
-        toastr.success(msg, title);
+    public static session<T>(key: string, value?: T): T {
+        return BrowserStore.processRequest<T>(window.sessionStorage, key, value, "Session");
     }
 
-    export function exclamation(msg: string, title?: string) {
-        toastr.warning(msg, title);
+    //    private static removeItemVal = {};
+
+    static removeSessionItem = function (key) {
+        window.sessionStorage.removeItem(key);
+    }
+    static removeLocalItem = function (key) {
+        window.localStorage.removeItem(key);
     }
 
-    export function handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object) {
-        toastr.error(error.toString());
-        console.error(error); // TODO: Log to DB
-        //alert("TODO: error log!..." + error); // TODO: implement
+    private static processRequest<T>(store: Storage, key: string, value: T, storeName: string): T {
+
+        var obj: any;
+
+        // if value is not specified at all assume we are doing a get.
+        if (value === undefined) {
+            try {
+                // GET
+                obj = store.getItem(key);
+                return StorageObject.deserialize<T>(obj);
+            }
+            catch (ex) {
+                L2.handleException(ex);
+                //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Get", Store: storeName, Key: key, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
+            }
+        } else {
+            try {
+                //if (value === BrowserStore.removeItemVal) {
+                //    store.removeItem(key);
+                //    return;
+                //}
+
+                // SET
+                obj = new StorageObject(value);
+                store.setItem(key, JSON.stringify(obj));
+            }
+            catch (ex) {
+                L2.handleException(ex);
+                //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Set", Store: storeName, Key: key, Value: value, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
+            }
+        }
+
+    }
+
+
+}
+
+class StorageObject {
+
+    private isValueAndObject: boolean;
+    private value: any;
+
+    constructor(val: any) {
+        this.isValueAndObject = (typeof val === "object");
+        this.value = val;
+    }
+
+    public static deserialize<T>(val: any): T {
+        if (!val || typeof (val) === "undefined") return null;
+
+        var obj = JSON.parse(val);
+        //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
+        return obj.value;
+    }
+
+}
+
+export default class L2 {
+
+    private static _customOutputMsgHandler: IL2OutputMessageHandler;
+
+    static get BrowserStore(): BrowserStore {
+        return BrowserStore;
+    }
+
+    static registerOutputMessageHandler(handler: IL2OutputMessageHandler) {
+        L2._customOutputMsgHandler = handler;
+    }
+
+    static info(msg: string, title?: string) {
+        if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.info.apply(L2._customOutputMsgHandler, arguments);
+        else toastr.info(msg, title);
+    }
+
+    static success(msg: string, title?: string) {
+        if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.success.apply(L2._customOutputMsgHandler, arguments);
+        else toastr.success(msg, title);
+    }
+
+    static exclamation(msg: string, title?: string) {
+        if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
+        else toastr.warning(msg, title);
+    }
+
+    static handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object) {
+        if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);
+        else {
+            toastr.error(error.toString());
+            console.error(error); // TODO: Log to DB
+        }
 
     }
 
     // https://gomakethings.com/vanilla-javascript-version-of-jquery-extend/
     // Pass in the objects to merge as arguments.
     // For a deep extend, set the first argument to `true`.
-    export function extend(...any) {
+    static extend(...any) {
         var extended = {};
         var deep = false;
         var i = 0;
@@ -82,98 +188,20 @@ module L2 {
     };
 
 
-    export class BrowserStore {
-        constructor() {
-
-        }
-
-        public static local<T>(key: string, value?: T): T {
-            return BrowserStore.processRequest<T>(window.localStorage, key, value, "Local");
-        }
-
-        public static session<T>(key: string, value?: T): T {
-            return BrowserStore.processRequest<T>(window.sessionStorage, key, value, "Session");
-        }
-
-        //    private static removeItemVal = {};
-
-        static removeSessionItem = function (key) {
-            window.sessionStorage.removeItem(key);
-        }
-        static removeLocalItem = function (key) {
-            window.localStorage.removeItem(key);
-        }
-
-        private static processRequest<T>(store: Storage, key: string, value: T, storeName: string): T {
-
-            var obj: any;
-
-            // if value is not specified at all assume we are doing a get.
-            if (value === undefined) {
-                try {
-                    // GET
-                    obj = store.getItem(key);
-                    return StorageObject.deserialize<T>(obj);
-                }
-                catch (ex) {
-                    L2.handleException(ex);
-                    //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Get", Store: storeName, Key: key, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
-                }
-            } else {
-                try {
-                    //if (value === BrowserStore.removeItemVal) {
-                    //    store.removeItem(key);
-                    //    return;
-                    //}
-
-                    // SET
-                    obj = new StorageObject(value);
-                    store.setItem(key, JSON.stringify(obj));
-                }
-                catch (ex) {
-                    L2.handleException(ex);
-                    //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Set", Store: storeName, Key: key, Value: value, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
-                }
-            }
-
-        }
-
-
-    }
-
-    class StorageObject {
-
-        private isValueAndObject: boolean;
-        private value: any;
-
-        constructor(val: any) {
-            this.isValueAndObject = (typeof val === "object");
-            this.value = val;
-        }
-
-        public static deserialize<T>(val: any): T {
-            if (!val || typeof (val) === "undefined") return null;
-
-            var obj = JSON.parse(val);
-            //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
-            return obj.value;
-        }
-
-    }
-
-
-    export function clientIP(): Promise<string> {
+    static clientIP(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             fetch(`${jsDAL.Server.serverUrl}/api/util/clientip`)
                 .then((r) => {
                     if (r.status >= 200 && r.status < 300) { return r; }
                     else { resolve(null); }
                 })
-                .then((r:any) => {
+                .then((r: any) => {
                     resolve(r);
-                }).catch(e=>resolve(null));
+                }).catch(e => resolve(null));
         });
     }
 }
 
-export default L2;
+
+
+

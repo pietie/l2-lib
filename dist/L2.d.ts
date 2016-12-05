@@ -4,21 +4,29 @@ export declare class toastr {
     static warning(msg: any, title: any): void;
     static error(msg: any): void;
 }
-declare module L2 {
-    function fetchJson(): void;
-    function info(msg: string, title?: string): void;
-    function success(msg: string, title?: string): void;
-    function exclamation(msg: string, title?: string): void;
-    function handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object): void;
-    function extend(...any: any[]): {};
-    class BrowserStore {
-        constructor();
-        static local<T>(key: string, value?: T): T;
-        static session<T>(key: string, value?: T): T;
-        static removeSessionItem: (key: any) => void;
-        static removeLocalItem: (key: any) => void;
-        private static processRequest<T>(store, key, value, storeName);
-    }
-    function clientIP(): Promise<string>;
+export interface IL2OutputMessageHandler {
+    info(msg: string, title?: string): any;
+    success(msg: string, title?: string): any;
+    warning(msg: string, title?: string): any;
+    exclamation(msg: string, title?: string): any;
+    handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object): any;
 }
-export default L2;
+export declare class BrowserStore {
+    constructor();
+    static local<T>(key: string, value?: T): T;
+    static session<T>(key: string, value?: T): T;
+    static removeSessionItem: (key: any) => void;
+    static removeLocalItem: (key: any) => void;
+    private static processRequest<T>(store, key, value, storeName);
+}
+export default class L2 {
+    private static _customOutputMsgHandler;
+    static readonly BrowserStore: BrowserStore;
+    static registerOutputMessageHandler(handler: IL2OutputMessageHandler): void;
+    static info(msg: string, title?: string): void;
+    static success(msg: string, title?: string): void;
+    static exclamation(msg: string, title?: string): void;
+    static handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object): void;
+    static extend(...any: any[]): {};
+    static clientIP(): Promise<string>;
+}

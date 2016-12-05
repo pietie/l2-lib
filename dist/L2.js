@@ -19,34 +19,110 @@ var toastr = (function () {
     return toastr;
 }());
 exports.toastr = toastr;
-var L2;
-(function (L2) {
-    function fetchJson() {
-        // TODO!!!
+var BrowserStore = (function () {
+    function BrowserStore() {
     }
-    L2.fetchJson = fetchJson;
-    function info(msg, title) {
-        toastr.info(msg, title);
+    BrowserStore.local = function (key, value) {
+        return BrowserStore.processRequest(window.localStorage, key, value, "Local");
+    };
+    BrowserStore.session = function (key, value) {
+        return BrowserStore.processRequest(window.sessionStorage, key, value, "Session");
+    };
+    BrowserStore.processRequest = function (store, key, value, storeName) {
+        var obj;
+        // if value is not specified at all assume we are doing a get.
+        if (value === undefined) {
+            try {
+                // GET
+                obj = store.getItem(key);
+                return StorageObject.deserialize(obj);
+            }
+            catch (ex) {
+                L2.handleException(ex);
+            }
+        }
+        else {
+            try {
+                //if (value === BrowserStore.removeItemVal) {
+                //    store.removeItem(key);
+                //    return;
+                //}
+                // SET
+                obj = new StorageObject(value);
+                store.setItem(key, JSON.stringify(obj));
+            }
+            catch (ex) {
+                L2.handleException(ex);
+            }
+        }
+    };
+    //    private static removeItemVal = {};
+    BrowserStore.removeSessionItem = function (key) {
+        window.sessionStorage.removeItem(key);
+    };
+    BrowserStore.removeLocalItem = function (key) {
+        window.localStorage.removeItem(key);
+    };
+    return BrowserStore;
+}());
+exports.BrowserStore = BrowserStore;
+var StorageObject = (function () {
+    function StorageObject(val) {
+        this.isValueAndObject = (typeof val === "object");
+        this.value = val;
     }
-    L2.info = info;
-    function success(msg, title) {
-        toastr.success(msg, title);
+    StorageObject.deserialize = function (val) {
+        if (!val || typeof (val) === "undefined")
+            return null;
+        var obj = JSON.parse(val);
+        //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
+        return obj.value;
+    };
+    return StorageObject;
+}());
+var L2 = (function () {
+    function L2() {
     }
-    L2.success = success;
-    function exclamation(msg, title) {
-        toastr.warning(msg, title);
-    }
-    L2.exclamation = exclamation;
-    function handleException(error, additionalKVs) {
-        toastr.error(error.toString());
-        console.error(error); // TODO: Log to DB
-        //alert("TODO: error log!..." + error); // TODO: implement
-    }
-    L2.handleException = handleException;
+    Object.defineProperty(L2, "BrowserStore", {
+        get: function () {
+            return BrowserStore;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    L2.registerOutputMessageHandler = function (handler) {
+        L2._customOutputMsgHandler = handler;
+    };
+    L2.info = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.info.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.info(msg, title);
+    };
+    L2.success = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.success.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.success(msg, title);
+    };
+    L2.exclamation = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.warning(msg, title);
+    };
+    L2.handleException = function (error, additionalKVs) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);
+        else {
+            toastr.error(error.toString());
+            console.error(error); // TODO: Log to DB
+        }
+    };
     // https://gomakethings.com/vanilla-javascript-version-of-jquery-extend/
     // Pass in the objects to merge as arguments.
     // For a deep extend, set the first argument to `true`.
-    function extend() {
+    L2.extend = function () {
         var any = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             any[_i - 0] = arguments[_i];
@@ -80,71 +156,9 @@ var L2;
             merge(obj);
         }
         return extended;
-    }
-    L2.extend = extend;
+    };
     ;
-    var BrowserStore = (function () {
-        function BrowserStore() {
-        }
-        BrowserStore.local = function (key, value) {
-            return BrowserStore.processRequest(window.localStorage, key, value, "Local");
-        };
-        BrowserStore.session = function (key, value) {
-            return BrowserStore.processRequest(window.sessionStorage, key, value, "Session");
-        };
-        BrowserStore.processRequest = function (store, key, value, storeName) {
-            var obj;
-            // if value is not specified at all assume we are doing a get.
-            if (value === undefined) {
-                try {
-                    // GET
-                    obj = store.getItem(key);
-                    return StorageObject.deserialize(obj);
-                }
-                catch (ex) {
-                    L2.handleException(ex);
-                }
-            }
-            else {
-                try {
-                    //if (value === BrowserStore.removeItemVal) {
-                    //    store.removeItem(key);
-                    //    return;
-                    //}
-                    // SET
-                    obj = new StorageObject(value);
-                    store.setItem(key, JSON.stringify(obj));
-                }
-                catch (ex) {
-                    L2.handleException(ex);
-                }
-            }
-        };
-        //    private static removeItemVal = {};
-        BrowserStore.removeSessionItem = function (key) {
-            window.sessionStorage.removeItem(key);
-        };
-        BrowserStore.removeLocalItem = function (key) {
-            window.localStorage.removeItem(key);
-        };
-        return BrowserStore;
-    }());
-    L2.BrowserStore = BrowserStore;
-    var StorageObject = (function () {
-        function StorageObject(val) {
-            this.isValueAndObject = (typeof val === "object");
-            this.value = val;
-        }
-        StorageObject.deserialize = function (val) {
-            if (!val || typeof (val) === "undefined")
-                return null;
-            var obj = JSON.parse(val);
-            //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
-            return obj.value;
-        };
-        return StorageObject;
-    }());
-    function clientIP() {
+    L2.clientIP = function () {
         return new Promise(function (resolve, reject) {
             fetch(L2_DAL_1.default.Server.serverUrl + "/api/util/clientip")
                 .then(function (r) {
@@ -159,9 +173,9 @@ var L2;
                 resolve(r);
             }).catch(function (e) { return resolve(null); });
         });
-    }
-    L2.clientIP = clientIP;
-})(L2 || (L2 = {}));
+    };
+    return L2;
+}());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = L2;
 //# sourceMappingURL=L2.js.map
