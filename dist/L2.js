@@ -83,13 +83,6 @@ var StorageObject = (function () {
 var L2 = (function () {
     function L2() {
     }
-    Object.defineProperty(L2, "BrowserStore", {
-        get: function () {
-            return BrowserStore;
-        },
-        enumerable: true,
-        configurable: true
-    });
     L2.registerOutputMessageHandler = function (handler) {
         L2._customOutputMsgHandler = handler;
     };
@@ -178,4 +171,6 @@ var L2 = (function () {
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = L2;
+delete L2.BrowserStore;
+L2.BrowserStore = BrowserStore; // don't know the correct TS way
 //# sourceMappingURL=L2.js.map

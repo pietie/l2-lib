@@ -21,7 +21,10 @@ export declare class BrowserStore {
 }
 export default class L2 {
     private static _customOutputMsgHandler;
-    static readonly BrowserStore: BrowserStore;
+    static BrowserStore: {
+        local<T>(key: string, value?: T): T;
+        session<T>(key: string, value?: T): T;
+    };
     static registerOutputMessageHandler(handler: IL2OutputMessageHandler): void;
     static info(msg: string, title?: string): void;
     static success(msg: string, title?: string): void;

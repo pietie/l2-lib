@@ -112,13 +112,13 @@ class StorageObject {
 
 }
 
+
+
 export default class L2 {
 
     private static _customOutputMsgHandler: IL2OutputMessageHandler;
 
-    static get BrowserStore(): BrowserStore {
-        return BrowserStore;
-    }
+    public static BrowserStore: { local<T>(key: string, value?: T): T, session<T>(key: string, value?: T): T };
 
     static registerOutputMessageHandler(handler: IL2OutputMessageHandler) {
         L2._customOutputMsgHandler = handler;
@@ -202,6 +202,5 @@ export default class L2 {
     }
 }
 
-
-
-
+delete L2.BrowserStore;
+(<any>L2).BrowserStore = BrowserStore; // don't know the correct TS way

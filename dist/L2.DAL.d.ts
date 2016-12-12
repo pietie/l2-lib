@@ -7,12 +7,14 @@ declare module jsDAL {
     class Server {
         static serverUrl: string;
         static dbConnection: string;
+        static overridingDbSource: string;
         static jwt: JWT;
         static configure(options: IDALServerOptions): void;
     }
     interface IDALServerOptions {
         serverUrl?: string;
         dbConnection?: string;
+        overridingDbSource?: string;
         jwt?: JWT;
     }
     interface IExecDefaults {
