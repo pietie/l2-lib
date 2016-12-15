@@ -217,7 +217,7 @@ var jsDAL;
                 return r;
         });
     };
-    function ExecGlobal(method, dbSource, schema, routine, mappedParams, options) {
+    function ExecGlobal(method, dbSource, schema, routine, mappedParams, options, alwaysCBs) {
         return new Promise(function (resolve, reject) {
             // create query string based on routine parameters
             var parmQueryStringArray = mappedParams.map(function (p) {
@@ -250,7 +250,7 @@ var jsDAL;
                 dbSource = Server.overridingDbSource;
             // GET
             if (method == "GET") {
-                fetchWrap(Server.serverUrl + "/api/exec/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString)
+                fetchWrap(Server.serverUrl + "/api/exec/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, null, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -269,7 +269,7 @@ var jsDAL;
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(bodyContent)
-                })
+                }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -279,7 +279,7 @@ var jsDAL;
             else if (method == "SCALAR") {
                 fetchWrap(Server.serverUrl + "/api/execScalar/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, {
                     credentials: 'same-origin'
-                })
+                }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
@@ -287,10 +287,9 @@ var jsDAL;
             }
             else
                 throw "Invalid method: " + method;
-            // Handle result? --> special handling of ApiResponse?!
         });
     }
-    function fetchWrap(url, init) {
+    function fetchWrap(url, init, alwaysCBs) {
         return new Promise(function (resolve, reject) {
             if (jsDAL.Server.jwt != null) {
                 if (!init)
@@ -305,7 +304,21 @@ var jsDAL;
             })["catch"](function (err) {
                 err.fetch = { url: url, init: init };
                 reject(err);
-            }).then(function (r) { resolve(r); });
+            }).then(function (r) {
+                resolve(r);
+                if (alwaysCBs)
+                    callAlwaysCallbacks(r, alwaysCBs);
+            });
+        });
+    }
+    function callAlwaysCallbacks(result, alwaysCBs) {
+        var _this = this;
+        if (!alwaysCBs || alwaysCBs.length == 0)
+            return result;
+        alwaysCBs.forEach(function (cb) {
+            if (typeof cb === "function") {
+                cb.call(_this, result);
+            }
         });
     }
     function transformResults(r) {
@@ -529,6 +542,12 @@ var jsDAL;
             }
             return this.deferred.promise.then.apply(this.deferred.promise, args);
         };
+        Sproc /*implements Thenable<any>*/.prototype.always = function (cb) {
+            if (!this._alwaysCallbacks)
+                this._alwaysCallbacks = [];
+            this._alwaysCallbacks.push(cb);
+            return this;
+        };
         /*
         var dalPromise = sproc.Exec();
 
@@ -566,7 +585,8 @@ var jsDAL;
                 settings.$select = this.selectFieldsCsv;
             var startTick = performance.now();
             this.isLoading = true;
-            return ExecGlobal(method, this.dbSource, this.schema, this.routine, mappedParams, settings).then(function (r) { _this.lastExecutionTime = performance.now() - startTick; _this.isLoading = false; _this.deferred.resolve(r); return r; });
+            return ExecGlobal(method, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+                .then(function (r) { _this.lastExecutionTime = performance.now() - startTick; _this.isLoading = false; _this.deferred.resolve(r); return r; });
         };
         Sproc /*implements Thenable<any>*/.prototype.ExecQuery = function (options) {
             return this.Exec("GET", options);

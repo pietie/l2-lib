@@ -297,7 +297,12 @@ module jsDAL {
     }
 
 
-    function ExecGlobal(method: string, dbSource: string, schema: string, routine: string, mappedParams: any[], options: (IExecDefaults)): Promise<any> {
+    function ExecGlobal(method: string, dbSource: string, schema: string, routine: string
+        , mappedParams: any[]
+        , options: (IExecDefaults)
+        , alwaysCBs?: ((res:any)=>any)[]
+
+    ): Promise<any> {
 
         return new Promise((resolve, reject) => {
             // create query string based on routine parameters
@@ -338,7 +343,7 @@ module jsDAL {
 
             // GET
             if (method == "GET") {
-                fetchWrap(`${Server.serverUrl}/api/exec/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`)
+                fetchWrap(`${Server.serverUrl}/api/exec/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, null, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -362,7 +367,7 @@ module jsDAL {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(bodyContent)
-                    })
+                    }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -374,7 +379,7 @@ module jsDAL {
             else if (method == "SCALAR") {
                 fetchWrap(`${Server.serverUrl}/api/execScalar/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, {
                     credentials: 'same-origin'
-                })
+                }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
@@ -384,13 +389,12 @@ module jsDAL {
             }
             else throw "Invalid method: " + method;
 
-            // Handle result? --> special handling of ApiResponse?!
-
-
         });
     }
 
-    function fetchWrap(url: string | Request, init?: RequestInit|any): any | Promise<Response> {
+    function fetchWrap(url: string | Request
+        , init?: RequestInit | any
+        , alwaysCBs?: ((res: any) => any)[]): any | Promise<Response> {
 
         return new Promise<Response>((resolve, reject) => {
 
@@ -405,10 +409,33 @@ module jsDAL {
             fetch(url, init).then((r: any) => {
                 r.fetch = { url: url, init: init };
                 resolve(r);
+                return r;
             })["catch"](err => {
                 err.fetch = { url: url, init: init };
                 reject(err);
-            }).then(r => { resolve(<any>r); });
+                return err;
+            }).then(r => {
+                resolve(<any>r);
+
+                if (alwaysCBs) callAlwaysCallbacks(r, alwaysCBs);
+
+                return r;
+            });
+        });
+    }
+
+    function callAlwaysCallbacks(result: any, alwaysCBs?: ((res: any) => any)[]) {
+
+        if (!alwaysCBs || alwaysCBs.length == 0) return result;
+
+        alwaysCBs.forEach(cb => {
+
+            if (typeof cb === "function") {
+
+                cb.call(this, result);
+                //cb.call
+            }
+
         });
     }
 
@@ -662,6 +689,8 @@ module jsDAL {
         public lastExecutionTime: number;
         public isLoading: boolean = false;
 
+        private _alwaysCallbacks: ((res: any) => any)[];
+
 
         // something in angular 2 seems to break the instanceof check...not sure what yet
         public static looksLikeADuck(val: any): boolean {
@@ -692,6 +721,15 @@ module jsDAL {
         public then(...args) {
             return this.deferred.promise.then.apply(this.deferred.promise, args);
         }
+
+        public always(cb: (...any) => any) : Sproc {
+            if (!this._alwaysCallbacks) this._alwaysCallbacks = [];
+
+            this._alwaysCallbacks.push(cb);
+
+            return this;
+        }
+
         /*
         var dalPromise = sproc.Exec();
 
@@ -738,7 +776,8 @@ module jsDAL {
             let startTick = performance.now();
             this.isLoading = true;
 
-            return ExecGlobal(method, this.dbSource, this.schema, this.routine, mappedParams, settings).then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
+            return ExecGlobal(method, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+                .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
         }
 
         public ExecQuery(options?: IExecDefaults): Promise<any> {

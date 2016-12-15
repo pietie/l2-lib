@@ -48,6 +48,7 @@ declare module jsDAL {
         private selectFieldsCsv;
         lastExecutionTime: number;
         isLoading: boolean;
+        private _alwaysCallbacks;
         static looksLikeADuck(val: any): boolean;
         getExecPacket(): {
             dbSource: string;
@@ -59,6 +60,7 @@ declare module jsDAL {
         };
         constructor(schema: string, routine: string, params?: string[], options?: IExecDefaults);
         then(...args: any[]): any;
+        always(cb: (...any) => any): Sproc;
         protected Exec(method: string, options?: IExecDefaults): Promise<any>;
         ExecQuery(options?: IExecDefaults): Promise<any>;
         ExecNonQuery(options?: IExecDefaults): Promise<any>;
