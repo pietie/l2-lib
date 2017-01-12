@@ -29,6 +29,8 @@ export interface IL2OutputMessageHandler {
 
     exclamation(msg: string, title?: string);
 
+    confirm(msg: string, title?: string) : Promise<boolean>;
+
     handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object);
 
 }
@@ -137,6 +139,19 @@ export default class L2 {
     static exclamation(msg: string, title?: string) {
         if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
         else toastr.warning(msg, title);
+    }
+
+    static confirm(msg: string, title?: string): Promise<boolean> {
+        let args = arguments;
+        return new Promise<boolean>((resolve, reject) => {
+            if (L2._customOutputMsgHandler) {
+                return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
+            }
+            else {
+                reject(false); // currenly no default implementation
+            }
+
+        });
     }
 
     static handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object) {

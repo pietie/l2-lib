@@ -9,6 +9,7 @@ export interface IL2OutputMessageHandler {
     success(msg: string, title?: string): any;
     warning(msg: string, title?: string): any;
     exclamation(msg: string, title?: string): any;
+    confirm(msg: string, title?: string): Promise<boolean>;
     handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object): any;
 }
 export declare class BrowserStore {
@@ -29,6 +30,7 @@ export default class L2 {
     static info(msg: string, title?: string): void;
     static success(msg: string, title?: string): void;
     static exclamation(msg: string, title?: string): void;
+    static confirm(msg: string, title?: string): Promise<boolean>;
     static handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object): void;
     static extend(...any: any[]): {};
     static clientIP(): Promise<string>;

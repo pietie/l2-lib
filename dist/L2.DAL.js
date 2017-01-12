@@ -301,13 +301,16 @@ var jsDAL;
             fetch(url, init).then(function (r) {
                 r.fetch = { url: url, init: init };
                 resolve(r);
+                return r;
             })["catch"](function (err) {
                 err.fetch = { url: url, init: init };
                 reject(err);
+                return err;
             }).then(function (r) {
                 resolve(r);
                 if (alwaysCBs)
                     callAlwaysCallbacks(r, alwaysCBs);
+                return r;
             });
         });
     }
