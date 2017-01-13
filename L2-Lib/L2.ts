@@ -143,14 +143,12 @@ export default class L2 {
 
     static confirm(msg: string, title?: string): Promise<boolean> {
         let args = arguments;
-        return new Promise<boolean>((resolve, reject) => {
-            if (L2._customOutputMsgHandler) {
-                return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
-            }
-            else {
-                reject(false); // currenly no default implementation
-            }
+        if (L2._customOutputMsgHandler) {
+            return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
+        }
 
+        return new Promise<boolean>((resolve, reject) => {
+            reject(false); // currenly no default implementation
         });
     }
 

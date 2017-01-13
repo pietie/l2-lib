@@ -106,13 +106,11 @@ var L2 = (function () {
     };
     L2.confirm = function (msg, title) {
         var args = arguments;
+        if (L2._customOutputMsgHandler) {
+            return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
+        }
         return new Promise(function (resolve, reject) {
-            if (L2._customOutputMsgHandler) {
-                return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
-            }
-            else {
-                reject(false); // currenly no default implementation
-            }
+            reject(false); // currenly no default implementation
         });
     };
     L2.handleException = function (error, additionalKVs) {
