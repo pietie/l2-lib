@@ -84,6 +84,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="jsDAL.common.d.ts" />
     <TypeScriptCompile Include="L2.DAL.ts" />
     <TypeScriptCompile Include="L2.ts" />
     <TypeScriptCompile Include="L2.UI.ts" />
