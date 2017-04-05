@@ -88,7 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="controls\index.ts" />
+    <TypeScriptCompile Include="controls\L2-controls.module.ts" />
     <TypeScriptCompile Include="controls\l2-grid\l2-grid.ts" />
+    <TypeScriptCompile Include="index.ts" />
     <TypeScriptCompile Include="jsDAL.common.d.ts" />
     <TypeScriptCompile Include="KeyValueStore.ts" />
     <TypeScriptCompile Include="L2.DAL.ts" />
