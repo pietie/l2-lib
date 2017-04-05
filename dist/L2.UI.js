@@ -2,15 +2,13 @@
 var __extends = (this && this.__extends) || function (d, b) { for (var p in b)
     if (b.hasOwnProperty(p))
         d[p] = b[p]; function __() { this.constructor = d; } d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __()); };
-var UI = (function () {
-    function UI() {
-    }
-    UI.IsNullOrEmpty = function (val) {
+class UI {
+    static IsNullOrEmpty(val) {
         return val == null || val == "";
-    };
-    UI.NewCbo = function (options) {
+    }
+    static NewCbo(options) {
         // intialise settings with defaults
-        var settings = {
+        let settings = {
             id: null,
             name: null,
             chosen: true,
@@ -41,7 +39,7 @@ var UI = (function () {
         if (settings.name)
             $cbo.attr("name", settings.name);
         var waitForData = $.Deferred();
-        waitForData.done(function (settings) {
+        waitForData.done((settings) => {
             // process data
             if (settings.defaultItemText) {
                 var $op = $("<option/>").text(settings.defaultItemText).attr("value", settings.defaultItemValue);
@@ -101,7 +99,7 @@ var UI = (function () {
             if (settings.target) {
                 $(settings.target).append($('<div class="l2CboLoading">Loading, please wait...</div>'));
             }
-            settings.sproc.then(function (results) {
+            settings.sproc.then((results) => {
                 settings.data = results;
                 waitForData.resolve(settings);
             });
@@ -110,154 +108,153 @@ var UI = (function () {
             waitForData.resolve(settings);
         }
         return $cbo;
-    };
-    UI.A = function (options) {
-        try {
-            var settings = {
-                text: "",
-                href: null,
-                visible: true,
-                cssClass: null,
-                target: null
-            };
-            __extends(settings, options);
-            var $a = $("<a></a>");
-            if (!UI.IsNullOrEmpty(settings.cssClass)) {
-                $a.attr("class", settings.cssClass);
-            }
-            if (!UI.IsNullOrEmpty(settings.target)) {
-                $a.attr("target", settings.target);
-            }
-            ////////////////
-            // HREF
-            ////////////////
-            if (!UI.IsNullOrEmpty(settings.href)) {
-                if (typeof (settings.href) === "string") {
-                    $a.attr("href", settings.href);
-                }
-                else if (typeof (settings.href) === "object") {
-                    if (typeof (settings.href.func) != "undefined") {
-                        var parmCsv = "";
-                        if (typeof (settings.href.parms) === "object" && typeof (settings.href.parms.join) != "undefined") {
-                            var ar = [];
-                            for (var e in settings.href.parms) {
-                                ar.push(JSON.stringify(settings.href.parms[e]));
-                            }
-                            parmCsv = ar.join();
-                        }
-                        else if (typeof (settings.href.parms) != "undefined") {
-                            parmCsv = settings.href.parms.toString();
-                        }
-                        $a.attr("href", "javascript:" + settings.href.func + "(" + parmCsv + ");");
-                    }
-                }
-            }
-            $a.text(settings.text);
-            if (!settings.visible)
-                $a.css({ display: "none" });
-            return $a[0].outerHTML;
+    }
+}
+UI.A = function (options) {
+    try {
+        var settings = {
+            text: "",
+            href: null,
+            visible: true,
+            cssClass: null,
+            target: null
+        };
+        __extends(settings, options);
+        var $a = $("<a></a>");
+        if (!UI.IsNullOrEmpty(settings.cssClass)) {
+            $a.attr("class", settings.cssClass);
         }
-        catch (e) {
-            console.error(e);
-            throw e;
+        if (!UI.IsNullOrEmpty(settings.target)) {
+            $a.attr("target", settings.target);
         }
-    };
-    UI.NewGrid = function (options) {
-        try {
-            var settings = {
-                target: null,
-                sproc: null,
-                data: null,
-                retrieve: true,
-                paging: false,
-                searching: false,
-                info: false,
-                autoGenerateColumns: false,
-                autoDestroy: true,
-                callBack: null
-            };
-            __extends(settings, options);
-            var waitForData = $.Deferred();
-            waitForData.done(function (settings) {
-                // process data
-                if (settings.data) {
-                    // todo: Specify result set?
-                    if (settings.sproc) {
-                        var data = settings.data.Data.Table0;
-                        //window.DAL.TransformResults(data);
-                        settings.data = data;
-                    }
-                    // auto generate columns that are not specified
-                    if (settings.autoGenerateColumns && settings.data.length > 0) {
-                        var autoColumnsLookup = {};
-                        for (var p in settings.data[0]) {
-                            autoColumnsLookup[p] = { data: p };
-                        }
-                        if (settings.columns) {
-                            for (var c in settings.columns) {
-                                var col = settings.columns[c];
-                                autoColumnsLookup[col.data] = col;
-                            }
-                        }
-                        settings.columns = $.map(autoColumnsLookup, function (obj) { return obj; });
-                    }
-                    if (settings.autoDestroy && $.fn.dataTable.fnIsDataTable(settings.target)) {
-                        $(settings.target).DataTable().destroy();
-                        $(settings.target).html("");
-                    }
-                    if (settings.target && $(settings.target).is("TABLE")) {
-                        if ($(settings.target).find("thead").length == 0) {
-                            // create table header on demand
-                            var $thead = $('<thead><tr class="gridHeader"></tr></thead>');
-                            if (settings.columns != null) {
-                                for (var i = 0; i < settings.columns.length; i++) {
-                                    var col = settings.columns[i];
-                                    if (typeof (col.visible) !== "undefined" && !col.visible)
-                                        continue;
-                                    var $th = $('<th></th>');
-                                    if (typeof (col.title) !== "undefined")
-                                        $th.text(col.title);
-                                    else if (typeof (col.data) === "string")
-                                        $th.text(col.data);
-                                    else
-                                        $th.text("Col " + i);
-                                    $thead.find("tr").append($th);
-                                }
-                            }
-                            $(settings.target).append($thead);
-                        }
-                    }
-                    // this greatly upsets DataTables if present
-                    delete settings.prototype;
-                    $(settings.target).DataTable(settings);
-                }
-                if (settings.target) {
-                    $(settings.target).find(".l2CboLoading").remove();
-                }
-            });
-            // does this *look* like a DAL.Sproc object?
-            if (settings.sproc && settings.sproc.getExecPacket) {
-                if (settings.target) {
-                    $(settings.target).append($('<div class="l2CboLoading">Loading, please wait...</div>'));
-                }
-                settings.sproc.then(function (results) {
-                    settings.data = results;
-                    waitForData.resolve(settings);
-                });
+        ////////////////
+        // HREF
+        ////////////////
+        if (!UI.IsNullOrEmpty(settings.href)) {
+            if (typeof (settings.href) === "string") {
+                $a.attr("href", settings.href);
             }
-            else if (settings.data) {
+            else if (typeof (settings.href) === "object") {
+                if (typeof (settings.href.func) != "undefined") {
+                    var parmCsv = "";
+                    if (typeof (settings.href.parms) === "object" && typeof (settings.href.parms.join) != "undefined") {
+                        var ar = [];
+                        for (var e in settings.href.parms) {
+                            ar.push(JSON.stringify(settings.href.parms[e]));
+                        }
+                        parmCsv = ar.join();
+                    }
+                    else if (typeof (settings.href.parms) != "undefined") {
+                        parmCsv = settings.href.parms.toString();
+                    }
+                    $a.attr("href", "javascript:" + settings.href.func + "(" + parmCsv + ");");
+                }
+            }
+        }
+        $a.text(settings.text);
+        if (!settings.visible)
+            $a.css({ display: "none" });
+        return $a[0].outerHTML;
+    }
+    catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
+UI.NewGrid = function (options) {
+    try {
+        var settings = {
+            target: null,
+            sproc: null,
+            data: null,
+            retrieve: true,
+            paging: false,
+            searching: false,
+            info: false,
+            autoGenerateColumns: false,
+            autoDestroy: true,
+            callBack: null
+        };
+        __extends(settings, options);
+        var waitForData = $.Deferred();
+        waitForData.done(function (settings) {
+            // process data
+            if (settings.data) {
+                // todo: Specify result set?
+                if (settings.sproc) {
+                    var data = settings.data.Data.Table0;
+                    //window.DAL.TransformResults(data);
+                    settings.data = data;
+                }
+                // auto generate columns that are not specified
+                if (settings.autoGenerateColumns && settings.data.length > 0) {
+                    var autoColumnsLookup = {};
+                    for (var p in settings.data[0]) {
+                        autoColumnsLookup[p] = { data: p };
+                    }
+                    if (settings.columns) {
+                        for (var c in settings.columns) {
+                            var col = settings.columns[c];
+                            autoColumnsLookup[col.data] = col;
+                        }
+                    }
+                    settings.columns = $.map(autoColumnsLookup, function (obj) { return obj; });
+                }
+                if (settings.autoDestroy && $.fn.dataTable.fnIsDataTable(settings.target)) {
+                    $(settings.target).DataTable().destroy();
+                    $(settings.target).html("");
+                }
+                if (settings.target && $(settings.target).is("TABLE")) {
+                    if ($(settings.target).find("thead").length == 0) {
+                        // create table header on demand
+                        var $thead = $('<thead><tr class="gridHeader"></tr></thead>');
+                        if (settings.columns != null) {
+                            for (var i = 0; i < settings.columns.length; i++) {
+                                var col = settings.columns[i];
+                                if (typeof (col.visible) !== "undefined" && !col.visible)
+                                    continue;
+                                var $th = $('<th></th>');
+                                if (typeof (col.title) !== "undefined")
+                                    $th.text(col.title);
+                                else if (typeof (col.data) === "string")
+                                    $th.text(col.data);
+                                else
+                                    $th.text("Col " + i);
+                                $thead.find("tr").append($th);
+                            }
+                        }
+                        $(settings.target).append($thead);
+                    }
+                }
+                // this greatly upsets DataTables if present
+                delete settings.prototype;
+                $(settings.target).DataTable(settings);
+            }
+            if (settings.target) {
+                $(settings.target).find(".l2CboLoading").remove();
+            }
+        });
+        // does this *look* like a DAL.Sproc object?
+        if (settings.sproc && settings.sproc.getExecPacket) {
+            if (settings.target) {
+                $(settings.target).append($('<div class="l2CboLoading">Loading, please wait...</div>'));
+            }
+            settings.sproc.then(function (results) {
+                settings.data = results;
                 waitForData.resolve(settings);
-            }
-            if (settings.callBack != null) {
-                settings.callBack();
-            }
+            });
         }
-        catch (ex) {
-            console.error(ex);
-            throw ex;
+        else if (settings.data) {
+            waitForData.resolve(settings);
         }
-    };
-    return UI;
-}());
+        if (settings.callBack != null) {
+            settings.callBack();
+        }
+    }
+    catch (ex) {
+        console.error(ex);
+        throw ex;
+    }
+};
 export default UI;
 //# sourceMappingURL=L2.UI.js.map

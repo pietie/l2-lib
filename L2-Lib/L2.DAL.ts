@@ -261,26 +261,7 @@ module jsDAL {
     class ApiResponseEndThenChain { handled: boolean; }
 
     
-    //class DALPromise<T> extends Promise<T>
-    //{
-    //    //   how do we know WHEN to call finally? It's easy to call from .catch but there could be (x) amount of thens..but finally means something in the context of the DAL - the sproc call completed, so finally should rather be called ALWAYS
-    //    always<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): any/*Promise<U>*/ {
-
-
-    //        //super.then.catch();
-
-
-    //        return this;
-    //    }
-
-    //    then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Promise<U> {
-    //        var ret = super.then<U>(... ??
-    //    }
-
-    //}
-    //?new DALPromise<Date>(() => { }).then(
-
-    Promise.prototype.ifthen = function (cond, cb) {
+    (<any>Promise).prototype.ifthen = function (cond, cb) {
         //if (cond) return this.then(cb);  
         return this.then(r => {
             if (cond) return cb(r);

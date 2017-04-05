@@ -8,6 +8,8 @@ export declare class L2GridTemplateColumnRow {
 }
 export declare class L2GridTemplateColumn {
     private templateRef;
+    bound: string;
+    display: string;
     constructor(templateRef: TemplateRef<L2GridTemplateColumnRow>);
 }
 export declare class L2GridColumnCollection implements AfterContentInit {

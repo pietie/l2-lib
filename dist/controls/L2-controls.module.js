@@ -8,22 +8,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { NgModule } from '@angular/core';
-import { L2Grid, L2GridColumn, L2GridColumnCollection, L2GridNoResults, L2GridTemplateColumn, L2GridTemplateColumnRow } from './l2-grid/l2-grid';
-export var L2ControlsModule = (function () {
-    function L2ControlsModule() {
-    }
-    L2ControlsModule = __decorate([
-        NgModule({
-            declarations: [
-                L2Grid, L2GridColumn, L2GridColumnCollection, L2GridNoResults, L2GridTemplateColumn, L2GridTemplateColumnRow
-            ],
-            imports: [],
-            providers: [],
-            entryComponents: [],
-            bootstrap: []
-        }), 
-        __metadata('design:paramtypes', [])
-    ], L2ControlsModule);
-    return L2ControlsModule;
-}());
+import { CommonModule } from '@angular/common';
+import { MaterialModule } from '@angular/material';
+import { L2Grid, L2GridColumn, L2GridColumnCollection, L2GridNoResults, L2GridTemplateColumn } from './l2-grid/l2-grid';
+export let L2ControlsModule = class L2ControlsModule {
+};
+L2ControlsModule = __decorate([
+    NgModule({
+        declarations: [
+            L2Grid, L2GridColumn, L2GridColumnCollection, L2GridNoResults, L2GridTemplateColumn /*, L2GridTemplateColumnRow*/
+        ],
+        imports: [
+            CommonModule, MaterialModule
+        ],
+        exports: [
+            L2Grid, L2GridColumn, L2GridColumnCollection, L2GridNoResults, L2GridTemplateColumn
+        ],
+        providers: [],
+        entryComponents: [],
+        bootstrap: []
+    }), 
+    __metadata('design:paramtypes', [])
+], L2ControlsModule);
 //# sourceMappingURL=L2-controls.module.js.map

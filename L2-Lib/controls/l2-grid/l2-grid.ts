@@ -12,6 +12,7 @@ export class L2GridColumn {
 
 }
 
+ 
 export class L2GridTemplateColumnRow {
     constructor(/*public $implicit: anypublic $implicit: any, public index: number, public count: number*/) {
     }
@@ -19,10 +20,14 @@ export class L2GridTemplateColumnRow {
 
 @Directive({
     selector: '[templatecolumn]', //inputs: [ 'row', 'index' ]
+    inputs: [ 'bound', 'display'],
     providers: [{ provide: L2GridColumn, useExisting: L2GridTemplateColumn }] // 'cheat' so that  @ContentChildren(L2GridColumn) picks up this column type as well
 
 })
 export class L2GridTemplateColumn {
+    @Input() bound: string = null;
+    @Input() display: string = null;
+
     constructor(private templateRef: TemplateRef<L2GridTemplateColumnRow>) {
     }
 }
@@ -42,12 +47,14 @@ export class L2GridNoResults {
 
 }
 
-
+declare var require:any;
 
 @Component({
     selector: 'l2-grid',
-    templateUrl: './l2-grid.html',
-    styleUrls: ['./l2-grid.css'],
+    template: require('./l2-grid.html'), // temporary solution until I figure out how to compile and package this project properly
+    styles: [ require('./l2-grid.css')],
+    //templateUrl: './l2-grid.html',
+    //styleUrls: ['./l2-grid.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class L2Grid implements AfterContentInit {
@@ -140,7 +147,8 @@ export class L2Grid implements AfterContentInit {
 
 
     private getColumnNames(): string[] {
-
+        
+        
         if (this.columnCollections == null) return null;
         return this.columnCollections.first.columnList.map(c => c.display ? c.display : "");
     }

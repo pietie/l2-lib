@@ -1,20 +1,14 @@
-export var KeyValueStore = (function () {
-    function KeyValueStore() {
-    }
+export class KeyValueStore {
     // todo: Have IndexDB backend with fallback to Browser local storage!
-    KeyValueStore.open = function (storeName) {
+    static open(storeName) {
         return null;
-    };
-    return KeyValueStore;
-}());
-export var KeyValueStoreKV = (function () {
-    function KeyValueStoreKV() {
     }
-    KeyValueStoreKV.prototype.key = function (keyName, value) {
+}
+export class KeyValueStoreKV {
+    key(keyName, value) {
         return null;
-    };
-    return KeyValueStoreKV;
-}());
+    }
+}
 /*
 KeyValueStore.open("MyStore").key("KeyName");
 KeyValueStore.open("MyStore").key<Date>("KeyName");

@@ -1,8 +1,3 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 import L2 from "./L2";
 // TODO: Clean-up the polyfills below - rather include the necessary dependency refs?
 // Production steps of ECMA-262, Edition 5, 15.4.4.14
@@ -162,19 +157,16 @@ if (!Array.prototype.filter) {
 }
 var jsDAL;
 (function (jsDAL) {
-    var Server = (function () {
-        function Server() {
-        }
-        Server.configure = function (options) {
+    class Server {
+        static configure(options) {
             if (options.dbConnection == "")
                 options.dbConnection = null;
             Server.serverUrl = options.serverUrl;
             Server.dbConnection = options.dbConnection;
             Server.jwt = options.jwt;
             Server.overridingDbSource = options.overridingDbSource;
-        };
-        return Server;
-    }());
+        }
+    }
     jsDAL.Server = Server;
     var ApiResponseType;
     (function (ApiResponseType) {
@@ -185,31 +177,13 @@ var jsDAL;
         ApiResponseType[ApiResponseType["Error"] = 30] = "Error";
         ApiResponseType[ApiResponseType["Exception"] = 40] = "Exception";
     })(ApiResponseType || (ApiResponseType = {}));
-    var ApiResponse = (function () {
-        function ApiResponse() {
-        }
-        return ApiResponse;
-    }());
-    var ApiResponseEndThenChain = (function () {
-        function ApiResponseEndThenChain() {
-        }
-        return ApiResponseEndThenChain;
-    }());
-    //class DALPromise<T> extends Promise<T>
-    //{
-    //    //   how do we know WHEN to call finally? It's easy to call from .catch but there could be (x) amount of thens..but finally means something in the context of the DAL - the sproc call completed, so finally should rather be called ALWAYS
-    //    always<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): any/*Promise<U>*/ {
-    //        //super.then.catch();
-    //        return this;
-    //    }
-    //    then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Promise<U> {
-    //        var ret = super.then<U>(... ??
-    //    }
-    //}
-    //?new DALPromise<Date>(() => { }).then(
+    class ApiResponse {
+    }
+    class ApiResponseEndThenChain {
+    }
     Promise.prototype.ifthen = function (cond, cb) {
         //if (cond) return this.then(cb);  
-        return this.then(function (r) {
+        return this.then(r => {
             if (cond)
                 return cb(r);
             else
@@ -217,9 +191,9 @@ var jsDAL;
         });
     };
     function ExecGlobal(method, dbSource, schema, routine, mappedParams, options, alwaysCBs) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
             // create query string based on routine parameters
-            var parmQueryStringArray = mappedParams.map(function (p) {
+            var parmQueryStringArray = mappedParams.map(p => {
                 var parmValue = options[p];
                 // serialize Date/moment objects to ISO string format
                 if (typeof (moment) != "undefined" && moment.isMoment(parmValue)) {
@@ -249,19 +223,19 @@ var jsDAL;
                 dbSource = Server.overridingDbSource;
             // GET
             if (method == "GET") {
-                fetchWrap(Server.serverUrl + "/api/exec/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, null, alwaysCBs)
+                fetchWrap(`${Server.serverUrl}/api/exec/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, null, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r)); return r; });
+                    .then(r => resolve(r))["catch"](r => { reject(fetchCatch(r)); return r; });
             }
             else if (method == "POST") {
                 var bodyContent = {};
-                mappedParams.forEach(function (p) { bodyContent[p] = options[p]; });
+                mappedParams.forEach(p => { bodyContent[p] = options[p]; });
                 if (tokenGuid)
                     bodyContent["tokenGuid"] = tokenGuid;
-                fetchWrap(Server.serverUrl + "/api/exec/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine, {
+                fetchWrap(`${Server.serverUrl}/api/exec/${dbSource}/${Server.dbConnection}/${schema}/${routine}`, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -273,39 +247,39 @@ var jsDAL;
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r)); });
+                    .then(r => resolve(r))["catch"](r => { reject(fetchCatch(r)); });
             }
             else if (method == "SCALAR") {
-                fetchWrap(Server.serverUrl + "/api/execScalar/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, {
+                fetchWrap(`${Server.serverUrl}/api/execScalar/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, {
                     credentials: 'same-origin'
                 }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r)); });
+                    .then(r => resolve(r))["catch"](r => { reject(fetchCatch(r)); });
             }
             else
                 throw "Invalid method: " + method;
         });
     }
     function fetchWrap(url, init, alwaysCBs) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
             if (jsDAL.Server.jwt != null) {
                 if (!init)
                     init = {};
                 if (!init.headers)
                     init.headers = {};
-                init.headers["Authorization"] = "Bearer " + jsDAL.Server.jwt.access_token;
+                init.headers["Authorization"] = `Bearer ${jsDAL.Server.jwt.access_token}`;
             }
-            fetch(url, init).then(function (r) {
+            fetch(url, init).then((r) => {
                 r.fetch = { url: url, init: init };
                 resolve(r);
                 return r;
-            })["catch"](function (err) {
+            })["catch"](err => {
                 err.fetch = { url: url, init: init };
                 reject(err);
                 return err;
-            }).then(function (r) {
+            }).then(r => {
                 resolve(r);
                 if (alwaysCBs)
                     callAlwaysCallbacks(r, alwaysCBs);
@@ -314,12 +288,11 @@ var jsDAL;
         });
     }
     function callAlwaysCallbacks(result, alwaysCBs) {
-        var _this = this;
         if (!alwaysCBs || alwaysCBs.length == 0)
             return result;
-        alwaysCBs.forEach(function (cb) {
+        alwaysCBs.forEach(cb => {
             if (typeof cb === "function") {
-                cb.call(_this, result);
+                cb.call(this, result);
             }
         });
     }
@@ -351,9 +324,9 @@ var jsDAL;
         }
         else {
             var contentType = response.headers.get("content-type");
-            var fetchDetails_1 = null;
+            let fetchDetails = null;
             if (response.fetch)
-                fetchDetails_1 = JSON.stringify(response.fetch);
+                fetchDetails = JSON.stringify(response.fetch);
             // look for a json result
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json().then(function (json) {
@@ -367,14 +340,14 @@ var jsDAL;
             else {
                 return response.text().then(function (text) {
                     L2.exclamation(text, "Http status code 02 " + response.status);
-                    L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                    L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails });
                     throw response;
                 });
             }
         }
     }
     function parseJSON(response) {
-        return response.json().then(function (json) {
+        return response.json().then((json) => {
             // if still a string after parsing once and it *looks* like json...
             if (typeof (json) === "string" && json.startsWith("{") && json.endsWith("}"))
                 return JSON.parse(json);
@@ -406,7 +379,7 @@ var jsDAL;
     function processApiResponse(json) {
         // if the result is a string, test for ApiResponse
         if (typeof (json) === "object" && typeof (json.ApiResponseVer) !== "undefined") {
-            var apiResponse = json;
+            let apiResponse = json;
             switch (apiResponse.Type) {
                 case ApiResponseType.Success:
                     return apiResponse;
@@ -426,12 +399,8 @@ var jsDAL;
             return json;
         }
     }
-    var Batch = (function () {
-        function Batch() {
-            var routines = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                routines[_i - 0] = arguments[_i];
-            }
+    class Batch {
+        constructor(...routines) {
             if (routines.length == 0) {
                 throw "You have to specify at least one routine to execute.";
             }
@@ -442,10 +411,9 @@ var jsDAL;
             }
             this.routineList = routines;
         }
-        Batch.prototype.ExecQuery = function (options) {
-            var _this = this;
+        ExecQuery(options) {
             // default settings
-            var settings = {
+            let settings = {
                 AutoSetTokenGuid: true,
                 AutoProcessApiResponse: true,
                 ShowPageLoadingIndicator: true,
@@ -453,10 +421,10 @@ var jsDAL;
             };
             options = options || {};
             settings = L2.extend(settings, options);
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 var batch = [];
-                for (var ix = 0; ix < _this.routineList.length; ix++) {
-                    var r = _this.routineList[ix];
+                for (var ix = 0; ix < this.routineList.length; ix++) {
+                    var r = this.routineList[ix];
                     batch.push({ Ix: ix, Routine: r.getExecPacket() });
                 }
                 // create query string based on routine parameters
@@ -469,15 +437,15 @@ var jsDAL;
                     }
                 }
                 var parmQueryString = optionsQueryStringArray.join("&");
-                fetchWrap(Server.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
+                fetchWrap(`${Server.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) {
+                    .then(r => {
                     //console.dir(r);
-                    for (var ix = 0; ix < _this.routineList.length; ix++) {
-                        var routine = _this.routineList[ix];
+                    for (var ix = 0; ix < this.routineList.length; ix++) {
+                        var routine = this.routineList[ix];
                         var transformed = transformResults(r.Data[ix]);
                         try {
                             //if (options.AutoProcessApiResponse)
@@ -487,28 +455,25 @@ var jsDAL;
                         routine.deferred.resolve(transformed);
                     }
                 })
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { fetchCatch(r); reject(r); });
-            });
-        };
-        Batch.prototype.ExecNonQuery = function (options) {
-            return null;
-        };
-        return Batch;
-    }());
-    jsDAL.Batch = Batch;
-    var Deferred = (function () {
-        function Deferred() {
-            var _this = this;
-            this.promise = new Promise(function (resolve, reject) {
-                _this.reject = reject;
-                _this.resolve = resolve;
+                    .then(r => resolve(r))["catch"](r => { fetchCatch(r); reject(r); });
             });
         }
-        return Deferred;
-    }());
+        ExecNonQuery(options) {
+            return null;
+        }
+    }
+    jsDAL.Batch = Batch;
+    class Deferred {
+        constructor() {
+            this.promise = new Promise((resolve, reject) => {
+                this.reject = reject;
+                this.resolve = resolve;
+            });
+        }
+    }
     jsDAL.Deferred = Deferred;
-    var Sproc /*implements Thenable<any>*/ = (function () {
-        function Sproc /*implements Thenable<any>*/(schema, routine, params, options) {
+    class Sproc /*implements Thenable<any>*/ {
+        constructor(schema, routine, params, options) {
             // TODO: turn this into a GET property
             this.deferred = null;
             this.schema = null;
@@ -522,12 +487,12 @@ var jsDAL;
             this.constructorOptions = options;
         }
         // something in angular 2 seems to break the instanceof check...not sure what yet
-        Sproc /*implements Thenable<any>*/.looksLikeADuck = function (val) {
+        static looksLikeADuck(val) {
             if (!val)
                 return false;
             return typeof (val.ExecQuery) === "function" && typeof (val.routine) === "string" && typeof (val.routineParams) === "object";
-        };
-        Sproc /*implements Thenable<any>*/.prototype.getExecPacket = function () {
+        }
+        getExecPacket() {
             return {
                 dbSource: this.dbSource,
                 dbConnection: Server.dbConnection,
@@ -536,20 +501,16 @@ var jsDAL;
                 params: this.constructorOptions,
                 $select: this.selectFieldsCsv
             };
-        };
-        Sproc /*implements Thenable<any>*/.prototype.then = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i - 0] = arguments[_i];
-            }
+        }
+        then(...args) {
             return this.deferred.promise.then.apply(this.deferred.promise, args);
-        };
-        Sproc /*implements Thenable<any>*/.prototype.always = function (cb) {
+        }
+        always(cb) {
             if (!this._alwaysCallbacks)
                 this._alwaysCallbacks = [];
             this._alwaysCallbacks.push(cb);
             return this;
-        };
+        }
         /*
         var dalPromise = sproc.Exec();
 
@@ -558,12 +519,11 @@ var jsDAL;
             .then(() => console.log("success do something more"))
             .catch((err) => { console.error(err); });
         */
-        Sproc /*implements Thenable<any>*/.prototype.Exec = function (method, options) {
-            var _this = this;
+        Exec(method, options) {
             if (!method || method == "")
-                throw "'method' must be specified. Consider using the methods ExecQuery or ExecNonQuery.";
+                throw `'method' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`;
             // default settings
-            var settings = {
+            let settings = {
                 AutoSetTokenGuid: true,
                 AutoProcessApiResponse: true,
                 ShowPageLoadingIndicator: true,
@@ -579,25 +539,25 @@ var jsDAL;
             //?__extends(settings, options);
             // look for parameters passed in that match the expected routine parameters
             if (options && this.routineParams) {
-                mappedParams = this.routineParams.filter(function (parmName) {
+                mappedParams = this.routineParams.filter(parmName => {
                     return options[parmName] !== undefined;
                 });
             }
             if (this.selectFieldsCsv)
                 settings.$select = this.selectFieldsCsv;
-            var startTick = performance.now();
+            let startTick = performance.now();
             this.isLoading = true;
             return ExecGlobal(method, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
-                .then(function (r) { _this.lastExecutionTime = performance.now() - startTick; _this.isLoading = false; _this.deferred.resolve(r); return r; });
-        };
-        Sproc /*implements Thenable<any>*/.prototype.ExecQuery = function (options) {
+                .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
+        }
+        ExecQuery(options) {
             return this.Exec("GET", options);
-        };
-        Sproc /*implements Thenable<any>*/.prototype.ExecNonQuery = function (options) {
+        }
+        ExecNonQuery(options) {
             return this.Exec("POST", options);
-        };
-        Sproc /*implements Thenable<any>*/.prototype.ExecSingleResult = function (options) {
-            return this.Exec("GET", options).then(function (r) {
+        }
+        ExecSingleResult(options) {
+            return this.Exec("GET", options).then(r => {
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
                     var r1 = null;
                     var op = r.Data.OutputParms;
@@ -611,52 +571,35 @@ var jsDAL;
                 }
                 return r;
             });
-        };
+        }
         // Limits the return
         // Tables are split by ; (semi-colon)
         // Columns are split by , (comma)
-        Sproc /*implements Thenable<any>*/.prototype.Select = function () {
-            var fieldNames = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                fieldNames[_i - 0] = arguments[_i];
-            }
+        Select(...fieldNames) {
             if (fieldNames.length == null)
                 return this;
             this.selectFieldsCsv = fieldNames.join(";");
             return this;
-        };
-        return Sproc /*implements Thenable<any>*/;
-    }());
-    jsDAL.Sproc /*implements Thenable<any>*/ = Sproc /*implements Thenable<any>*/;
-    var UDF = (function (_super) {
-        __extends(UDF, _super);
-        function UDF() {
-            _super.apply(this, arguments);
         }
-        UDF.prototype.Exec = function (options) {
-            return _super.prototype.Exec.call(this, "SCALAR", options).then(function (r) {
+    }
+    jsDAL.Sproc /*implements Thenable<any>*/ = Sproc /*implements Thenable<any>*/;
+    class UDF extends Sproc {
+        Exec(options) {
+            return super.Exec("SCALAR", options).then(r => {
                 // return the single result value
                 if (r.IsDate)
                     return new Date(r.Data);
                 return r.Data;
             });
-        };
-        return UDF;
-    }(Sproc));
-    jsDAL.UDF = UDF;
-    var ServerVariables = (function () {
-        function ServerVariables() {
         }
-        Object.defineProperty(ServerVariables, "ClientIP", {
-            get: function () {
-                return ServerVariables.PREFIX_MARKER + ".RemoteClient.IP";
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ServerVariables.PREFIX_MARKER = "$jsDAL$";
-        return ServerVariables;
-    }());
+    }
+    jsDAL.UDF = UDF;
+    class ServerVariables {
+        static get ClientIP() {
+            return `${ServerVariables.PREFIX_MARKER}.RemoteClient.IP`;
+        }
+    }
+    ServerVariables.PREFIX_MARKER = "$jsDAL$";
     jsDAL.ServerVariables = ServerVariables;
 })(jsDAL || (jsDAL = {}));
 export default jsDAL;

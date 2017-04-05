@@ -136,7 +136,9 @@
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)L2-lib\jsDAL.common.d.ts" "$(SolutionDir)dist"</PostBuildEvent>
+    <PostBuildEvent>copy "$(SolutionDir)L2-lib\jsDAL.common.d.ts" "$(SolutionDir)dist"
+xcopy "$(SolutionDir)L2-lib\*.html"  "$(SolutionDir)dist" /s 
+xcopy "$(SolutionDir)L2-lib\*.css"  "$(SolutionDir)dist" /s</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,32 +1,29 @@
 import jsDAL from "./L2.DAL";
 // TODO: Implement DI-based messaging service?
-export var toastr = (function () {
-    function toastr() {
-    }
-    toastr.info = function (msg, title) {
+export class toastr {
+    static info(msg, title) {
         alert("info:" + msg);
-    };
-    toastr.success = function (msg, title) {
-        alert("success:" + msg);
-    };
-    toastr.warning = function (msg, title) {
-        alert("warning:" + msg);
-    };
-    toastr.error = function (msg) {
-        alert("error:" + msg);
-    };
-    return toastr;
-}());
-export var BrowserStore = (function () {
-    function BrowserStore() {
     }
-    BrowserStore.local = function (key, value) {
+    static success(msg, title) {
+        alert("success:" + msg);
+    }
+    static warning(msg, title) {
+        alert("warning:" + msg);
+    }
+    static error(msg) {
+        alert("error:" + msg);
+    }
+}
+export class BrowserStore {
+    constructor() {
+    }
+    static local(key, value) {
         return BrowserStore.processRequest(window.localStorage, key, value, "Local");
-    };
-    BrowserStore.session = function (key, value) {
+    }
+    static session(key, value) {
         return BrowserStore.processRequest(window.sessionStorage, key, value, "Session");
-    };
-    BrowserStore.processRequest = function (store, key, value, storeName) {
+    }
+    static processRequest(store, key, value, storeName) {
         var obj;
         // if value is not specified at all assume we are doing a get.
         if (value === undefined) {
@@ -53,79 +50,71 @@ export var BrowserStore = (function () {
                 L2.handleException(ex);
             }
         }
-    };
-    //    private static removeItemVal = {};
-    BrowserStore.removeSessionItem = function (key) {
-        window.sessionStorage.removeItem(key);
-    };
-    BrowserStore.removeLocalItem = function (key) {
-        window.localStorage.removeItem(key);
-    };
-    return BrowserStore;
-}());
-var StorageObject = (function () {
-    function StorageObject(val) {
+    }
+}
+//    private static removeItemVal = {};
+BrowserStore.removeSessionItem = function (key) {
+    window.sessionStorage.removeItem(key);
+};
+BrowserStore.removeLocalItem = function (key) {
+    window.localStorage.removeItem(key);
+};
+class StorageObject {
+    constructor(val) {
         this.isValueAndObject = (typeof val === "object");
         this.value = val;
     }
-    StorageObject.deserialize = function (val) {
+    static deserialize(val) {
         if (!val || typeof (val) === "undefined")
             return null;
         var obj = JSON.parse(val);
         //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
         return obj.value;
-    };
-    return StorageObject;
-}());
-var L2 = (function () {
-    function L2() {
     }
-    L2.registerOutputMessageHandler = function (handler) {
+}
+export default class L2 {
+    static registerOutputMessageHandler(handler) {
         L2._customOutputMsgHandler = handler;
-    };
-    L2.info = function (msg, title) {
+    }
+    static info(msg, title) {
         if (L2._customOutputMsgHandler)
             L2._customOutputMsgHandler.info.apply(L2._customOutputMsgHandler, arguments);
         else
             toastr.info(msg, title);
-    };
-    L2.success = function (msg, title) {
+    }
+    static success(msg, title) {
         if (L2._customOutputMsgHandler)
             L2._customOutputMsgHandler.success.apply(L2._customOutputMsgHandler, arguments);
         else
             toastr.success(msg, title);
-    };
-    L2.exclamation = function (msg, title) {
+    }
+    static exclamation(msg, title) {
         if (L2._customOutputMsgHandler)
             L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
         else
             toastr.warning(msg, title);
-    };
-    L2.confirm = function (msg, title) {
-        var args = arguments;
+    }
+    static confirm(msg, title) {
+        let args = arguments;
         if (L2._customOutputMsgHandler) {
             return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
         }
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
             reject(false); // currenly no default implementation
         });
-    };
-    L2.handleException = function (error, additionalKVs) {
+    }
+    static handleException(error, additionalKVs) {
         if (L2._customOutputMsgHandler)
             L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);
         else {
             toastr.error(error.toString());
             console.error(error); // TODO: Log to DB
         }
-    };
+    }
     // https://gomakethings.com/vanilla-javascript-version-of-jquery-extend/
     // Pass in the objects to merge as arguments.
     // For a deep extend, set the first argument to `true`.
-    L2.extend = function () {
-        var any = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            any[_i - 0] = arguments[_i];
-        }
+    static extend(...any) {
         var extended = {};
         var deep = false;
         var i = 0;
@@ -155,12 +144,12 @@ var L2 = (function () {
             merge(obj);
         }
         return extended;
-    };
+    }
     ;
-    L2.clientIP = function () {
-        return new Promise(function (resolve, reject) {
-            fetch(jsDAL.Server.serverUrl + "/api/util/clientip")
-                .then(function (r) {
+    static clientIP() {
+        return new Promise((resolve, reject) => {
+            fetch(`${jsDAL.Server.serverUrl}/api/util/clientip`)
+                .then((r) => {
                 if (r.status >= 200 && r.status < 300) {
                     return r;
                 }
@@ -168,14 +157,12 @@ var L2 = (function () {
                     resolve(null);
                 }
             })
-                .then(function (r) {
+                .then((r) => {
                 resolve(r);
-            }).catch(function (e) { return resolve(null); });
+            }).catch(e => resolve(null));
         });
-    };
-    return L2;
-}());
-export default L2;
+    }
+}
 delete L2.BrowserStore;
 L2.BrowserStore = BrowserStore; // don't know the correct TS way
 //# sourceMappingURL=L2.js.map

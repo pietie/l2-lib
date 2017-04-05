@@ -7,11 +7,14 @@
     "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "es6",
+    "module": "es2015",
     "moduleResolution": "node",
     "outDir": "../dist",
     "sourceMap": true,
-    "target": "es5"
+    "target": "es2015",
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "lib": [ "es2015", "dom" ]
 
   }
 }
@@ -30,4 +33,31 @@
 
   }
 }
+
+
+{
+  "compilerOptions": {
+        "stripInternal": false,
+       
+    "rootDir": ".",
+    
+    "inlineSources": true,
+    "target": "es2015",
+    "lib": ["es2015", "dom"],
+    
+    "types": []
+  },
+  "files": [
+    "public_api.ts",
+    "typings.d.ts"
+  ],
+  "angularCompilerOptions": {
+    "annotateForClosureCompiler": true,
+    "strictMetadataEmit": true,
+    "flatModuleOutFile": "index.js",
+    "flatModuleId": "@angular/material",
+    "skipTemplateCodegen": true
+  }
+}
+
 */
