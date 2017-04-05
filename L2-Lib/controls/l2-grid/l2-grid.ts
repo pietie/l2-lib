@@ -1,8 +1,7 @@
 ﻿import { Component, Input, Output, EventEmitter, Directive, QueryList, ContentChildren, AfterContentInit, ViewContainerRef, TemplateRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
-import L2 from '~/L2'
-import jsDAL  from '~/L2.DAL'
+import jsDAL from '../../L2.DAL'
 
 
 @Directive({ selector: 'column' })
@@ -78,15 +77,6 @@ export class L2Grid implements AfterContentInit {
         if (jsDAL.Sproc.looksLikeADuck(value)) {
             this.sproc = value;
         }
-        //else if (value instanceof Observable)
-        //{
-        //    let obs: Observable<any> = value;
-
-        //    obs.subscribe(r => {
-        //        console.log("1");
-        //        this.dataSource = r;
-        //    });
-        //}
         else {
             this._dataSource = value;
             if (value != null) this.isDataBound = true;
@@ -120,8 +110,8 @@ export class L2Grid implements AfterContentInit {
             this.changeDetectorRef.markForCheck();
 
         }).catch(e => {
-            L2.handleException(e);
             this._isLoading = false;
+            throw e;
         });
     }
 

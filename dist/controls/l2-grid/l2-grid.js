@@ -8,8 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Component, Input, Directive, QueryList, ContentChildren, ViewContainerRef, TemplateRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import L2 from '~/L2';
-import jsDAL from '~/L2.DAL';
+import jsDAL from '../../L2.DAL';
 export var L2GridColumn = (function () {
     function L2GridColumn() {
         this.bound = null;
@@ -142,8 +141,8 @@ export var L2Grid = (function () {
                 _this._isLoading = false;
                 _this.changeDetectorRef.markForCheck();
             }).catch(function (e) {
-                L2.handleException(e);
                 _this._isLoading = false;
+                throw e;
             });
         },
         enumerable: true,
