@@ -68,8 +68,11 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="controls\l2-grid\l2-grid.css" />
+    <Content Include="controls\l2-grid\l2-grid.html" />
     <Content Include="packages.config" />
     <Content Include="tsconfig.json" />
+    <Content Include="package.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -84,7 +87,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="controls\index.ts" />
+    <TypeScriptCompile Include="controls\l2-grid\l2-grid.ts" />
     <TypeScriptCompile Include="jsDAL.common.d.ts" />
+    <TypeScriptCompile Include="KeyValueStore.ts" />
     <TypeScriptCompile Include="L2.DAL.ts" />
     <TypeScriptCompile Include="L2.ts" />
     <TypeScriptCompile Include="L2.UI.ts" />

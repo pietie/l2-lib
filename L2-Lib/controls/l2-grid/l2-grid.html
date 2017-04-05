@@ -1,0 +1,58 @@
+﻿<table *ngIf="isDataBound"  class="grid" style="width:96%;margin:auto;" cellpadding="0" cellspacing="0" border="0">
+    <thead>
+        <tr class="gridHeader" style="position:relative">
+            <th *ngFor="let th of getColumnNames()">{{ th }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr style="height:0;padding:0;">
+            <td *ngIf="_isLoading" colspan="999" style="position:relative;height:0;padding:0;border:0;">
+                <div style="position:absolute;top:0px;height:10px;width:100%;background-color:transparent;">
+                    <md-progress-bar mode="indeterminate"></md-progress-bar>
+                </div>
+            </td>
+        </tr>
+        <tr class="header results-info" *ngIf="showHeaderStats && isDataBound && !isLoading && dataSource && dataSource.length > 0">
+            <td [colSpan]="columnCollections.first.columnList.length">
+                <div style="display:flex;flex-direction: row-reverse;padding-right:10px;align-items:center">
+                    <span>{{ dataSource.length | number }} row{{ dataSource.length != 1? "s":"" }}</span><span *ngIf="lastDurationInMilliseconds">&nbsp;/&nbsp;</span><span *ngIf="lastDurationInMilliseconds">{{ lastDurationInMilliseconds | number: '1.0-0' }} ms</span>
+                    <md-icon style="margin-right:10px;">info</md-icon>
+                </div>
+            </td>
+        </tr>
+        <template ngIf="isDataBound">
+            <tr *ngFor="let row of dataSource; let rowIx = index">
+                <td *ngFor="let col of columnCollections.first.columnList">
+
+                    <div *ngIf="col.templateRef">
+                        <template [ngTemplateOutlet]="col.templateRef"
+                                  [ngOutletContext]="{ $implicit: row, index: rowIx }">
+                        </template>
+                    </div>
+                    <div *ngIf="!col.templateRef">
+                        {{ getFieldData(col,row) }}
+
+                    </div>
+
+
+
+                </td>
+            </tr>
+        </template>
+        <tr class="footer results-info" *ngIf="showFooterStats && isDataBound && !isLoading && dataSource && dataSource.length > 0">
+            <td [colSpan]="columnCollections.first.columnList.length">
+                <div style="display:flex;flex-direction: row-reverse;padding-right:10px;align-items:center">
+                    <span>{{ dataSource.length | number }} row{{ dataSource.length != 1? "s":"" }}</span><span *ngIf="lastDurationInMilliseconds">&nbsp;/&nbsp;</span><span *ngIf="lastDurationInMilliseconds">{{ lastDurationInMilliseconds | number: '1.0-0' }} ms</span>
+                    <md-icon style="margin-right:10px;">info</md-icon>
+                </div>
+            </td>
+        </tr>
+
+        <tr *ngIf="isDataBound && !_isLoading  && (!dataSource || dataSource.length == 0)">
+            <td [colSpan]="columnCollections.first.columnList.length">
+                <ng-content select="no-results"></ng-content>
+            </td>
+        </tr>
+
+    </tbody>
+</table>
