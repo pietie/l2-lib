@@ -1,12 +1,33 @@
 ﻿{
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [ "./*" ]
+    },
     "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "commonjs",
+    "module": "es6",
+    "moduleResolution": "node",
     "outDir": "../dist",
     "sourceMap": true,
     "target": "es5"
 
   }
 }
+
+/*
+{
+  
+  
+  
+    "noLib": false,
+    "mapRoot": "./",
+    "module": "es6",
+    "moduleResolution": "node",
+  
+
+
+  }
+}
+*/

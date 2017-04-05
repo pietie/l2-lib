@@ -50,10 +50,10 @@ export class BrowserStore {
 
     //    private static removeItemVal = {};
 
-    static removeSessionItem = function (key) {
+    public static removeSessionItem = function (key) {
         window.sessionStorage.removeItem(key);
     }
-    static removeLocalItem = function (key) {
+    public static removeLocalItem = function (key) {
         window.localStorage.removeItem(key);
     }
 

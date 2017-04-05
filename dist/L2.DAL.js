@@ -1,10 +1,9 @@
-"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var L2_1 = require("./L2");
+import L2 from "./L2";
 // TODO: Clean-up the polyfills below - rather include the necessary dependency refs?
 // Production steps of ECMA-262, Edition 5, 15.4.4.14
 // Reference: http://es5.github.io/#x15.4.4.14
@@ -358,8 +357,8 @@ var jsDAL;
             // look for a json result
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json().then(function (json) {
-                    L2_1.default.exclamation(json.Message, "Http status code " + response.status);
-                    L2_1.default.handleException(new Error(JSON.stringify(json)));
+                    L2.exclamation(json.Message, "Http status code " + response.status);
+                    L2.handleException(new Error(JSON.stringify(json)));
                     // TODO:
                     //!window.ICE.LogJavascriptErrorToDb(new Error(JSON.stringify(json)), null, { origin: "checkHttpStatus 01", fetch: fetchDetails });
                     throw json;
@@ -367,8 +366,8 @@ var jsDAL;
             }
             else {
                 return response.text().then(function (text) {
-                    L2_1.default.exclamation(text, "Http status code 02 " + response.status);
-                    L2_1.default.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                    L2.exclamation(text, "Http status code 02 " + response.status);
+                    L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
                     throw response;
                 });
             }
@@ -396,7 +395,7 @@ var jsDAL;
             var fetchDetails = null;
             if (ex.fetch)
                 fetchDetails = JSON.stringify(ex.fetch);
-            L2_1.default.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+            L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
             var msg = ex;
             if (ex.Message)
                 msg = ex.Message;
@@ -412,13 +411,13 @@ var jsDAL;
                 case ApiResponseType.Success:
                     return apiResponse;
                 case ApiResponseType.InfoMsg:
-                    L2_1.default.info(apiResponse.Message);
+                    L2.info(apiResponse.Message);
                     break;
                 case ApiResponseType.ExclamationModal:
-                    L2_1.default.exclamation(apiResponse.Message, apiResponse.Title);
+                    L2.exclamation(apiResponse.Message, apiResponse.Title);
                     throw new ApiResponseEndThenChain();
                 case ApiResponseType.Exception:
-                    L2_1.default.handleException(apiResponse);
+                    L2.handleException(apiResponse);
                     throw new ApiResponseEndThenChain();
             }
             return apiResponse;
@@ -453,7 +452,7 @@ var jsDAL;
                 CommandTimeoutInSeconds: 60
             };
             options = options || {};
-            settings = L2_1.default.extend(settings, options);
+            settings = L2.extend(settings, options);
             return new Promise(function (resolve, reject) {
                 var batch = [];
                 for (var ix = 0; ix < _this.routineList.length; ix++) {
@@ -573,8 +572,8 @@ var jsDAL;
             var mappedParams = [];
             options = options || {};
             this.constructorOptions = this.constructorOptions || {};
-            options = L2_1.default.extend(options, this.constructorOptions);
-            settings = L2_1.default.extend(settings, options);
+            options = L2.extend(options, this.constructorOptions);
+            settings = L2.extend(settings, options);
             // TODO: can we just assume TypeScript's __extends exists?
             //?__extends(options, this.constructorOptions);
             //?__extends(settings, options);
@@ -660,6 +659,5 @@ var jsDAL;
     }());
     jsDAL.ServerVariables = ServerVariables;
 })(jsDAL || (jsDAL = {}));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = jsDAL;
+export default jsDAL;
 //# sourceMappingURL=L2.DAL.js.map

@@ -1,7 +1,6 @@
-"use strict";
-var L2_DAL_1 = require("./L2.DAL");
+import jsDAL from "./L2.DAL";
 // TODO: Implement DI-based messaging service?
-var toastr = (function () {
+export var toastr = (function () {
     function toastr() {
     }
     toastr.info = function (msg, title) {
@@ -18,8 +17,7 @@ var toastr = (function () {
     };
     return toastr;
 }());
-exports.toastr = toastr;
-var BrowserStore = (function () {
+export var BrowserStore = (function () {
     function BrowserStore() {
     }
     BrowserStore.local = function (key, value) {
@@ -65,7 +63,6 @@ var BrowserStore = (function () {
     };
     return BrowserStore;
 }());
-exports.BrowserStore = BrowserStore;
 var StorageObject = (function () {
     function StorageObject(val) {
         this.isValueAndObject = (typeof val === "object");
@@ -162,7 +159,7 @@ var L2 = (function () {
     ;
     L2.clientIP = function () {
         return new Promise(function (resolve, reject) {
-            fetch(L2_DAL_1.default.Server.serverUrl + "/api/util/clientip")
+            fetch(jsDAL.Server.serverUrl + "/api/util/clientip")
                 .then(function (r) {
                 if (r.status >= 200 && r.status < 300) {
                     return r;
@@ -178,8 +175,7 @@ var L2 = (function () {
     };
     return L2;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = L2;
+export default L2;
 delete L2.BrowserStore;
 L2.BrowserStore = BrowserStore; // don't know the correct TS way
 //# sourceMappingURL=L2.js.map
