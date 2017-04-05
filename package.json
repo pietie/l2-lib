@@ -1,1 +1,23 @@
-todo
+{
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/pietie/l2-lib/issues"
+  },
+  "homepage": "https://github.com/pietie/l2-lib#readme",
+  "license": "ISC",
+  "main": "dist",
+  "name": "l2-lib",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pietie/l2-lib.git"
+  },
+  "scripts": {},
+  "version": "1.0.2",
+  "files": [
+    "dist"
+  ],
+  "description": "",
+  "devDependencies": {
+
+  }
+}
