@@ -486,6 +486,13 @@ var jsDAL;
             this.routineParams = params;
             this.constructorOptions = options;
         }
+        static setExecDefaults(def) {
+            console.log("CURRENT exec defaults", Sproc._exeDefaults);
+            for (var prop in def) {
+                this._exeDefaults[prop] = def[prop];
+            }
+            console.log("NEW exec defaults", Sproc._exeDefaults);
+        }
         // something in angular 2 seems to break the instanceof check...not sure what yet
         static looksLikeADuck(val) {
             if (!val)
@@ -511,24 +518,11 @@ var jsDAL;
             this._alwaysCallbacks.push(cb);
             return this;
         }
-        /*
-        var dalPromise = sproc.Exec();
-
-        dalPromise.always(() => { console.log("once execution ends either through success or failure call this piece of code"); })
-            .then(() => console.log("success"))
-            .then(() => console.log("success do something more"))
-            .catch((err) => { console.error(err); });
-        */
         Exec(method, options) {
             if (!method || method == "")
                 throw `'method' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`;
             // default settings
-            let settings = {
-                AutoSetTokenGuid: true,
-                AutoProcessApiResponse: true,
-                ShowPageLoadingIndicator: true,
-                CommandTimeoutInSeconds: 60
-            };
+            let settings = Sproc._exeDefaults;
             var mappedParams = [];
             options = options || {};
             this.constructorOptions = this.constructorOptions || {};
@@ -582,6 +576,12 @@ var jsDAL;
             return this;
         }
     }
+    Sproc /*implements Thenable<any>*/._exeDefaults = {
+        AutoSetTokenGuid: true,
+        AutoProcessApiResponse: true,
+        ShowPageLoadingIndicator: true,
+        CommandTimeoutInSeconds: 60
+    };
     jsDAL.Sproc /*implements Thenable<any>*/ = Sproc /*implements Thenable<any>*/;
     class UDF extends Sproc {
         Exec(options) {

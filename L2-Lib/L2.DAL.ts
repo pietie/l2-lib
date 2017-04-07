@@ -654,6 +654,24 @@ module jsDAL {
 
     export class Sproc /*implements Thenable<any>*/ {
 
+        private static _exeDefaults: IExecDefaults = {
+            AutoSetTokenGuid: true,
+            AutoProcessApiResponse: true,
+            ShowPageLoadingIndicator: true,
+            CommandTimeoutInSeconds: 60
+        };
+
+        public static setExecDefaults(def: IExecDefaults) {
+            console.log("CURRENT exec defaults", Sproc._exeDefaults);
+
+            for (var prop in def) {
+                this._exeDefaults[prop] = def[prop];
+            }
+
+            console.log("NEW exec defaults", Sproc._exeDefaults);
+        }
+
+
         // TODO: turn this into a GET property
         public deferred: Deferred = null;
 
@@ -711,27 +729,13 @@ module jsDAL {
             return this;
         }
 
-        /*
-        var dalPromise = sproc.Exec();
-
-        dalPromise.always(() => { console.log("once execution ends either through success or failure call this piece of code"); })
-            .then(() => console.log("success"))
-            .then(() => console.log("success do something more"))
-            .catch((err) => { console.error(err); });
-        */
         protected Exec(method: string, options?: IExecDefaults): Promise<any> {
 
             if (!method || method == "")
                 throw `'method' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`;
 
-
             // default settings
-            let settings: IExecDefaults = {
-                AutoSetTokenGuid: true,
-                AutoProcessApiResponse: true,
-                ShowPageLoadingIndicator: true,
-                CommandTimeoutInSeconds: 60
-            };
+            let settings: IExecDefaults = Sproc._exeDefaults;
 
             var mappedParams: any[] = [];
 

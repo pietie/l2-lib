@@ -38,6 +38,8 @@ declare module jsDAL {
         constructor();
     }
     class Sproc {
+        private static _exeDefaults;
+        static setExecDefaults(def: IExecDefaults): void;
         deferred: Deferred;
         protected dbSource: string;
         protected catalog: string;
