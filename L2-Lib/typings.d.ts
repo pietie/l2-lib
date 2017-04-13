@@ -1,7 +1,7 @@
 ﻿declare var JWT: any;
 declare var moment: any;
 
-declare class IteratorResult<T> { }
+//declare class IteratorResult<T> { }
 
 //interface Thenable<T> {
 //    then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Thenable<U>;
@@ -35,7 +35,7 @@ declare class IteratorResult<T> { }
 //}
 
 
-
+/*
 interface ReadableStreamSource {
     start?(controller: ReadableStreamDefaultController): void | Promise<void>;
     pull?(controller: ReadableStreamDefaultController): void | Promise<void>;
@@ -189,7 +189,7 @@ declare class Headers {
     ////[Symbol.iterator](): IterableIterator<[string, string]>;
 }
 
-declare type BodyInit = Blob | ArrayBufferView | ArrayBuffer | FormData /* | URLSearchParams */ | string;
+declare type BodyInit = Blob | ArrayBufferView | ArrayBuffer | FormData  | string;
 interface Body {
     bodyUsed: boolean;
     arrayBuffer(): Promise<ArrayBuffer>;
@@ -270,3 +270,4 @@ interface ResponseConstructor {
 declare var Response: ResponseConstructor;
 
 type ResponseType = "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";
+*/
