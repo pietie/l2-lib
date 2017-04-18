@@ -6,6 +6,20 @@ var ApiResponseEndThenChain = (function () {
     return ApiResponseEndThenChain;
 }());
 export { ApiResponseEndThenChain };
+var ApiResponseType;
+(function (ApiResponseType) {
+    ApiResponseType[ApiResponseType["Unknown"] = 0] = "Unknown";
+    ApiResponseType[ApiResponseType["Success"] = 1] = "Success";
+    ApiResponseType[ApiResponseType["InfoMsg"] = 10] = "InfoMsg";
+    ApiResponseType[ApiResponseType["ExclamationModal"] = 20] = "ExclamationModal";
+    ApiResponseType[ApiResponseType["Error"] = 30] = "Error";
+    ApiResponseType[ApiResponseType["Exception"] = 40] = "Exception";
+})(ApiResponseType || (ApiResponseType = {}));
+var ApiResponse = (function () {
+    function ApiResponse() {
+    }
+    return ApiResponse;
+}());
 var BrowserStore = (function () {
     function BrowserStore() {
     }

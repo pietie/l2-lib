@@ -13,6 +13,22 @@ export class ApiResponseEndThenChain {
     handled?: boolean;
 }
 
+enum ApiResponseType {
+    Unknown = 0,
+    Success = 1,
+    InfoMsg = 10,
+    ExclamationModal = 20,
+    Error = 30,
+    Exception = 40
+}
+
+class ApiResponse {
+    Message: string;
+    Title: string;
+    Type: ApiResponseType;
+    Data: any;
+}
+
 
 export interface IL2OutputMessageHandler {
     info(msg: string, title?: string);
