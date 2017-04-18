@@ -1,0 +1,191 @@
+import jsDAL from "./L2.DAL";
+// TODO: Implement DI-based messaging service?
+var toastr = (function () {
+    function toastr() {
+    }
+    toastr.info = function (msg, title) {
+        alert("info:" + msg);
+    };
+    toastr.success = function (msg, title) {
+        alert("success:" + msg);
+    };
+    toastr.warning = function (msg, title) {
+        alert("warning:" + msg);
+    };
+    toastr.error = function (msg) {
+        alert("error:" + msg);
+    };
+    return toastr;
+}());
+export { toastr };
+var BrowserStore = (function () {
+    function BrowserStore() {
+    }
+    BrowserStore.local = function (key, value) {
+        return BrowserStore.processRequest(window.localStorage, key, value, "Local");
+    };
+    BrowserStore.session = function (key, value) {
+        return BrowserStore.processRequest(window.sessionStorage, key, value, "Session");
+    };
+    BrowserStore.processRequest = function (store, key, value, storeName) {
+        var obj;
+        // if value is not specified at all assume we are doing a get.
+        if (value === undefined) {
+            try {
+                // GET
+                obj = store.getItem(key);
+                return StorageObject.deserialize(obj);
+            }
+            catch (ex) {
+                L2.handleException(ex);
+                //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Get", Store: storeName, Key: key, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
+            }
+        }
+        else {
+            try {
+                //if (value === BrowserStore.removeItemVal) {
+                //    store.removeItem(key);
+                //    return;
+                //}
+                // SET
+                obj = new StorageObject(value);
+                store.setItem(key, JSON.stringify(obj));
+            }
+            catch (ex) {
+                L2.handleException(ex);
+                //ICE.HandleJavascriptError(ex, null, { Src: "ProcessRequest::Set", Store: storeName, Key: key, Value: value, Progress: progress, RemainingSpace: store.remainingSpace/*(only supported by IE)*/ });
+            }
+        }
+    };
+    return BrowserStore;
+}());
+export { BrowserStore };
+//    private static removeItemVal = {};
+BrowserStore.removeSessionItem = function (key) {
+    window.sessionStorage.removeItem(key);
+};
+BrowserStore.removeLocalItem = function (key) {
+    window.localStorage.removeItem(key);
+};
+var StorageObject = (function () {
+    function StorageObject(val) {
+        this.isValueAndObject = (typeof val === "object");
+        this.value = val;
+    }
+    StorageObject.deserialize = function (val) {
+        if (!val || typeof (val) === "undefined")
+            return null;
+        var obj = JSON.parse(val);
+        //!if (obj.IsValueAnObject) return $.parseJSON(obj.Value);
+        return obj.value;
+    };
+    return StorageObject;
+}());
+var L2 = (function () {
+    function L2() {
+    }
+    L2.registerOutputMessageHandler = function (handler) {
+        L2._customOutputMsgHandler = handler;
+    };
+    L2.info = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.info.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.info(msg, title);
+    };
+    L2.success = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.success.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.success(msg, title);
+    };
+    L2.exclamation = function (msg, title) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
+        else
+            toastr.warning(msg, title);
+    };
+    L2.confirm = function (msg, title) {
+        var args = arguments;
+        if (L2._customOutputMsgHandler) {
+            return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
+        }
+        return new Promise(function (resolve, reject) {
+            reject(false); // currenly no default implementation
+        });
+    };
+    L2.handleException = function (error, additionalKVs) {
+        if (L2._customOutputMsgHandler)
+            L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);
+        else {
+            toastr.error(error.toString());
+            console.error(error); // TODO: Log to DB
+        }
+    };
+    L2.nullToEmpty = function (val) {
+        if (val == null || val == undefined)
+            return '';
+        else
+            return val;
+    };
+    // https://gomakethings.com/vanilla-javascript-version-of-jquery-extend/
+    // Pass in the objects to merge as arguments.
+    // For a deep extend, set the first argument to `true`.
+    L2.extend = function () {
+        var any = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            any[_i] = arguments[_i];
+        }
+        var extended = {};
+        var deep = false;
+        var i = 0;
+        var length = arguments.length;
+        // Check if a deep merge
+        if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
+            deep = arguments[0];
+            i++;
+        }
+        // Merge the object into the extended object
+        var merge = function (obj) {
+            for (var prop in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                    // If deep merge and property is an object, merge properties
+                    if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+                        extended[prop] = this.extend(true, extended[prop], obj[prop]);
+                    }
+                    else {
+                        extended[prop] = obj[prop];
+                    }
+                }
+            }
+        };
+        // Loop through each object and conduct a merge
+        for (; i < length; i++) {
+            var obj = arguments[i];
+            merge(obj);
+        }
+        return extended;
+    };
+    ;
+    L2.clientIP = function () {
+        return new Promise(function (resolve, reject) {
+            fetch(jsDAL.Server.serverUrl + "/api/util/clientip")
+                .then(function (r) {
+                if (r.status >= 200 && r.status < 300) {
+                    return r;
+                }
+                else {
+                    resolve(null);
+                }
+            })
+                .then(function (r) {
+                resolve(r);
+            }).catch(function (e) { return resolve(null); });
+        });
+    };
+    return L2;
+}());
+export default L2;
+delete L2.BrowserStore;
+L2.BrowserStore = BrowserStore; // don't know the correct TS way
+//# sourceMappingURL=L2.js.map

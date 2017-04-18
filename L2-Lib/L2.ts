@@ -161,6 +161,11 @@ export default class L2 {
 
     }
 
+    static nullToEmpty(val: string) {
+        if (val == null || val == undefined) return '';
+        else return val;
+    }
+
     // https://gomakethings.com/vanilla-javascript-version-of-jquery-extend/
     // Pass in the objects to merge as arguments.
     // For a deep extend, set the first argument to `true`.
