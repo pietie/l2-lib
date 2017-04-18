@@ -120,7 +120,12 @@ export default class L2 {
 
     private static _customOutputMsgHandler: IL2OutputMessageHandler;
 
-    public static BrowserStore: { local<T>(key: string, value?: T): T, session<T>(key: string, value?: T): T };
+    public static BrowserStore: {
+        local<T>(key: string, value?: T): T,
+        session<T>(key: string, value?: T): T,
+        removeSessionItem: (key: any) => void;
+        removeLocalItem: (key: any) => void;
+    };
 
     static registerOutputMessageHandler(handler: IL2OutputMessageHandler) {
         L2._customOutputMsgHandler = handler;
