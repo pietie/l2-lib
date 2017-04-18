@@ -1,24 +1,18 @@
 ﻿import jsDAL from "./L2.DAL"
 
+
 // TODO: Implement DI-based messaging service?
 
-export class toastr {
-    static info(msg, title) {
-        alert("info:" + msg);
-    }
-
-    static success(msg, title) {
-        alert("success:" + msg);
-    }
-
-    static warning(msg, title) {
-        alert("warning:" + msg);
-    }
-
-    static error(msg) {
-        alert("error:" + msg);
-    }
+export interface PromiseL2<R> {
+    ifthen(...any): Promise<R>
 }
+
+// TODO: There is now a lot of overlap between L2 and L2.DAL. Make L2.DAL call L2 where overlap occurs? 
+
+export class ApiResponseEndThenChain {
+    handled?: boolean;
+}
+
 
 export interface IL2OutputMessageHandler {
     info(msg: string, title?: string);
@@ -29,7 +23,7 @@ export interface IL2OutputMessageHandler {
 
     exclamation(msg: string, title?: string);
 
-    confirm(msg: string, title?: string) : Promise<boolean>;
+    confirm(msg: string, title?: string): Promise<boolean>;
 
     handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object);
 
@@ -133,17 +127,14 @@ export default class L2 {
 
     static info(msg: string, title?: string) {
         if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.info.apply(L2._customOutputMsgHandler, arguments);
-        else toastr.info(msg, title);
     }
 
     static success(msg: string, title?: string) {
         if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.success.apply(L2._customOutputMsgHandler, arguments);
-        else toastr.success(msg, title);
     }
 
     static exclamation(msg: string, title?: string) {
         if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.warning.apply(L2._customOutputMsgHandler, arguments);
-        else toastr.warning(msg, title);
     }
 
     static confirm(msg: string, title?: string): Promise<boolean> {
@@ -160,8 +151,8 @@ export default class L2 {
     static handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object) {
         if (L2._customOutputMsgHandler) L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);
         else {
-            toastr.error(error.toString());
-            console.error(error); // TODO: Log to DB
+
+            throw error;
         }
 
     }
@@ -223,6 +214,196 @@ export default class L2 {
                 }).catch(e => resolve(null));
         });
     }
+
+
+    private static processApiResponse(json): Response {
+        // if the result is a string, test for ApiResponse
+        if (typeof (json) === "object" && typeof (json.ApiResponseVer) !== "undefined") {
+
+            let apiResponse = json;
+
+            switch (apiResponse.Type) {
+                case ApiResponseType.Success:
+                    return apiResponse;
+                case ApiResponseType.InfoMsg:
+                    L2.info(apiResponse.Message);
+                    break;
+                case ApiResponseType.ExclamationModal:
+
+                    //MsgDialog.exclamation(L2.dialog, apiResponse.Title ? apiResponse.Title : "", apiResponse.Message);
+
+                    throw new ApiResponseEndThenChain();
+                case ApiResponseType.Exception:
+                    //MsgDialog.exclamation(L2.dialog, "Application error occured", apiResponse.Message);
+
+                    throw new ApiResponseEndThenChain();
+
+
+            }
+
+
+            return apiResponse;
+        }
+        else {
+            return json;
+        }
+
+    }
+
+
+    static fetchJson(url: string | Request, init?: RequestInit): Promise<Response> {
+
+        return (<any>L2.fetchWrap(url, init)
+            .then(L2.checkHttpStatus)
+            .then(L2.parseJSON)
+        )
+            .ifthen(true, L2.processApiResponse)
+            .catch(L2.fetchCatch);
+    }
+
+
+    static postJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response> {
+
+        var defaults = {
+            method: "post",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        var settings = L2.extend(defaults, init);
+
+        return (<any>L2.fetchWrap(url, settings)
+            .then(L2.checkHttpStatus)
+            .then(L2.parseJSON))
+            .ifthen(true, L2.processApiResponse)
+            .catch(L2.fetchCatch)
+
+            ;
+    }
+
+    static putJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response> {
+
+        var defaults = {
+            method: "put",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        var settings = L2.extend(defaults, init);
+
+        return <any>L2.fetchWrap(url, settings)
+            .then(L2.checkHttpStatus)
+            .then(L2.parseJSON)
+            .then(L2.processApiResponse)
+            //!.ifthen(true, processApiResponse)
+            .catch(L2.fetchCatch)
+            ;
+    }
+
+    static deleteJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response> {
+
+        var defaults = {
+            method: "delete",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        var settings = L2.extend(defaults, init);
+
+        return <any>L2.fetchWrap(url, settings)
+            .then(L2.checkHttpStatus)
+            .then(L2.parseJSON)
+            .then(L2.processApiResponse)
+            //!.ifthen(true, processApiResponse)
+            .catch(L2.fetchCatch)
+
+            ;
+
+    }
+
+    private static fetchWrap(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response> {
+
+        return <any>new Promise<Response>((resolve, reject) => {
+
+            // PL: Temp hack when we are running with ng serve
+            if (window.location.port == '4200') url = 'http://localhost:9086' + url;
+
+            var jwt = BrowserStore.session<any>("jwt");
+
+            // if  a JWT exists, use it
+            if (jwt != null) {
+
+                if (!init) init = {};
+                if (!init.headers) init.headers = {};
+
+                init.headers["x-access-token"] = jwt.token;
+            }
+
+            if (!init) init = {};
+
+            init.mode = 'cors';
+
+
+            fetch(url, init).then((r: any) => {
+                r.fetch = { url: url, init: init };
+                resolve(r);
+            })["catch"](err => {
+                err.fetch = { url: url, init: init };
+                reject(err);
+            }).then(r => { resolve(<any>r); });
+        });
+    }
+
+
+    private static fetchCatch(ex) {
+        if (ex instanceof ApiResponseEndThenChain) {
+            ex.handled = true; //?
+            // handle special case where we just threw and exception(ApiResponseEndThenChain) to end any remaining 'thens' on the promise.
+            // we have to rethrow to prevent any additional '.then' callbacks from being executed
+            throw ex;
+        }
+
+
+        // TODO: Improve error here - look for specific type of failures (eg. network related)
+        //MsgDialog.exclamation(L2.dialog, "fetch failed", ex.toString());
+
+        return ex;
+    }
+
+    private static checkHttpStatus(response: Response): Response | any {
+        if (response.status >= 200 && response.status < 300) {
+            return response;
+        } else {
+            let error: Error & { response?: any } = new Error(response.statusText)
+
+            error.response = response;
+
+           // MsgDialog.exclamation(L2.dialog, "HTTP " + response.status, error.toString());
+
+            throw error;
+
+            //throw new ApiResponseEndThenChain();
+        }
+    }
+
+
+    private static parseJSON(response) {
+
+        return response.json().then((json) => {
+            // if still a string after parsing once...
+            if (typeof (json) === "string" && json.startsWith("{")) return JSON.parse(json);
+
+            return json;
+        });
+    }
+
+
 }
 
 delete L2.BrowserStore;

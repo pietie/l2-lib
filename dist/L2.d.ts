@@ -1,8 +1,8 @@
-export declare class toastr {
-    static info(msg: any, title: any): void;
-    static success(msg: any, title: any): void;
-    static warning(msg: any, title: any): void;
-    static error(msg: any): void;
+export interface PromiseL2<R> {
+    ifthen(...any: any[]): Promise<R>;
+}
+export declare class ApiResponseEndThenChain {
+    handled?: boolean;
 }
 export interface IL2OutputMessageHandler {
     info(msg: string, title?: string): any;
@@ -37,4 +37,13 @@ export default class L2 {
     static nullToEmpty(val: string): string;
     static extend(...any: any[]): {};
     static clientIP(): Promise<string>;
+    private static processApiResponse(json);
+    static fetchJson(url: string | Request, init?: RequestInit): Promise<Response>;
+    static postJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response>;
+    static putJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response>;
+    static deleteJson(url: string | Request, init?: RequestInit): Promise<Response> & PromiseL2<Response>;
+    private static fetchWrap(url, init?);
+    private static fetchCatch(ex);
+    private static checkHttpStatus(response);
+    private static parseJSON(response);
 }
