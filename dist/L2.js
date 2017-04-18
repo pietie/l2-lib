@@ -96,6 +96,15 @@ var L2 = (function () {
             reject(false); // currenly no default implementation
         });
     };
+    L2.prompt = function (title, fieldName, val, okayButtonLabel) {
+        var args = arguments;
+        if (L2._customOutputMsgHandler) {
+            return L2._customOutputMsgHandler.prompt.apply(L2._customOutputMsgHandler, args);
+        }
+        return new Promise(function (resolve, reject) {
+            reject(false); // currenly no default implementation
+        });
+    };
     L2.handleException = function (error, additionalKVs) {
         if (L2._customOutputMsgHandler)
             L2._customOutputMsgHandler.handleException.apply(L2._customOutputMsgHandler, arguments);

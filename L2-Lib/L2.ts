@@ -16,14 +16,12 @@ export class ApiResponseEndThenChain {
 
 export interface IL2OutputMessageHandler {
     info(msg: string, title?: string);
-
     success(msg: string, title?: string);
-
     warning(msg: string, title?: string);
-
     exclamation(msg: string, title?: string);
 
     confirm(msg: string, title?: string): Promise<boolean>;
+    prompt(title?: string, fieldName?: string, val?: string, okayButtonLabel?: string): Promise<boolean>;
 
     handleException(error: Error | ExceptionInformation | string, additionalKVs?: Object);
 
@@ -142,6 +140,18 @@ export default class L2 {
         if (L2._customOutputMsgHandler) {
             return L2._customOutputMsgHandler.confirm.apply(L2._customOutputMsgHandler, args);
         }
+
+        return new Promise<boolean>((resolve, reject) => {
+            reject(false); // currenly no default implementation
+        });
+    }
+
+    public static prompt(title?: string, fieldName?: string, val?: string, okayButtonLabel?: string): Promise<any> {
+        let args = arguments;
+        if (L2._customOutputMsgHandler) {
+            return L2._customOutputMsgHandler.prompt.apply(L2._customOutputMsgHandler, args); 
+        }
+        
 
         return new Promise<boolean>((resolve, reject) => {
             reject(false); // currenly no default implementation
