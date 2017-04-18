@@ -25,6 +25,8 @@ export default class L2 {
     static BrowserStore: {
         local<T>(key: string, value?: T): T;
         session<T>(key: string, value?: T): T;
+        removeSessionItem: (key: any) => void;
+        removeLocalItem: (key: any) => void;
     };
     static registerOutputMessageHandler(handler: IL2OutputMessageHandler): void;
     static info(msg: string, title?: string): void;
