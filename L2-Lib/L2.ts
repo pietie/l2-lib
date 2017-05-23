@@ -12,7 +12,7 @@ export interface PromiseL2<R> {
 export class ApiResponseEndThenChain {
     handled?: boolean;
 }
-
+ 
 enum ApiResponseType {
     Unknown = 0,
     Success = 1,
@@ -165,9 +165,9 @@ export default class L2 {
     public static prompt(title?: string, fieldName?: string, val?: string, okayButtonLabel?: string): Promise<any> {
         let args = arguments;
         if (L2._customOutputMsgHandler) {
-            return L2._customOutputMsgHandler.prompt.apply(L2._customOutputMsgHandler, args); 
+            return L2._customOutputMsgHandler.prompt.apply(L2._customOutputMsgHandler, args);
         }
-        
+
 
         return new Promise<boolean>((resolve, reject) => {
             reject(false); // currenly no default implementation
@@ -255,14 +255,16 @@ export default class L2 {
                     L2.info(apiResponse.Message);
                     break;
                 case ApiResponseType.ExclamationModal:
-
-                    //MsgDialog.exclamation(L2.dialog, apiResponse.Title ? apiResponse.Title : "", apiResponse.Message);
-
-                    throw new ApiResponseEndThenChain();
+                    {
+                        L2.exclamation(apiResponse.Message);
+                        throw new ApiResponseEndThenChain();
+                    }
                 case ApiResponseType.Exception:
-                    //MsgDialog.exclamation(L2.dialog, "Application error occured", apiResponse.Message);
+                    {
+                        L2.exclamation(apiResponse.Message);
 
-                    throw new ApiResponseEndThenChain();
+                        throw new ApiResponseEndThenChain();
+                    }
 
 
             }
@@ -410,7 +412,7 @@ export default class L2 {
 
             error.response = response;
 
-           // MsgDialog.exclamation(L2.dialog, "HTTP " + response.status, error.toString());
+            // MsgDialog.exclamation(L2.dialog, "HTTP " + response.status, error.toString());
 
             throw error;
 

@@ -298,7 +298,8 @@ module jsDAL {
                     parmValue = parmValue.toISOString();
                 }
 
-                return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
+                if (parmValue != null) return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
+                else return encodeURIComponent(p) + "=";
             });
 
             var tokenGuid: string = null;
@@ -331,6 +332,10 @@ module jsDAL {
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
                     .then(r => resolve(r))
                 ["catch"](r => { reject(fetchCatch(r)); return r; })
+                ["catch"](function (e) {
+                    if (e instanceof ApiResponseEndThenChain) return;
+                    else throw e;
+                })
                     ;
             }
             else if (method == "POST") {
@@ -355,6 +360,10 @@ module jsDAL {
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
                     .then(r => resolve(r))
                 ["catch"](r => { reject(fetchCatch(r)); })
+                ["catch"](function (e) {
+                    if (e instanceof ApiResponseEndThenChain) return;
+                    else throw e;
+                })
                     ;
             }
             else if (method == "SCALAR") {
@@ -366,6 +375,10 @@ module jsDAL {
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
                     .then(r => resolve(r))
                 ["catch"](r => { reject(fetchCatch(r)); })
+                ["catch"](function (e) {
+                    if (e instanceof ApiResponseEndThenChain) return;
+                    else throw e;
+                })
                     ;
             }
             else throw "Invalid method: " + method;
