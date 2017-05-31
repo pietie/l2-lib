@@ -198,11 +198,15 @@ var L2 = (function () {
                     L2.info(apiResponse.Message);
                     break;
                 case ApiResponseType.ExclamationModal:
-                    //MsgDialog.exclamation(L2.dialog, apiResponse.Title ? apiResponse.Title : "", apiResponse.Message);
-                    throw new ApiResponseEndThenChain();
+                    {
+                        L2.exclamation(apiResponse.Message);
+                        throw new ApiResponseEndThenChain();
+                    }
                 case ApiResponseType.Exception:
-                    //MsgDialog.exclamation(L2.dialog, "Application error occured", apiResponse.Message);
-                    throw new ApiResponseEndThenChain();
+                    {
+                        L2.exclamation(apiResponse.Message);
+                        throw new ApiResponseEndThenChain();
+                    }
             }
             return apiResponse;
         }
