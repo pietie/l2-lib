@@ -71,14 +71,21 @@ var jsDAL;
                     return encodeURIComponent(p) + "=";
             });
             var tokenGuid = null;
+            var customHeaders = {};
             if (options) {
                 if (options.AutoSetTokenGuid) {
                     tokenGuid = window["TokenGuid"];
+                    // TODO: Consider moving this to the custom header array
                     if (tokenGuid)
                         parmQueryStringArray.push("tokenGuid=" + tokenGuid);
                 }
+                // TODO: Consider moving this to the custom header array
                 if (options.$select)
                     parmQueryStringArray.push("$select=" + options.$select);
+                //if (options.$captcha) parmQueryStringArray.push("$captcha=" + options.$captcha);
+                if (options.$captcha) {
+                    customHeaders["captcha-val"] = options.$captcha;
+                }
             }
             var parmQueryString = parmQueryStringArray.join("&");
             if (parmQueryString && parmQueryString.length > 0 && parmQueryString != "")
@@ -92,7 +99,17 @@ var jsDAL;
             }
             // GET
             if (httpMethod == "GET") {
-                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, null, alwaysCBs)
+                var headers = null;
+                if (customHeaders && customHeaders.length > 0) {
+                    if (headers == null)
+                        headers = {};
+                    for (var e in customHeaders) {
+                        headers[e] = customHeaders[e];
+                    }
+                }
+                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, {
+                    headers: headers
+                }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -109,12 +126,16 @@ var jsDAL;
                 mappedParams.forEach(function (p) { bodyContent[p] = options[p]; });
                 if (tokenGuid)
                     bodyContent["tokenGuid"] = tokenGuid;
+                var headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+                for (var e in customHeaders) {
+                    headers[e] = customHeaders[e];
+                }
                 fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine, {
                     method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
+                    headers: headers,
                     body: JSON.stringify(bodyContent)
                 }, alwaysCBs)
                     .then(checkHttpStatus)
@@ -386,7 +407,8 @@ var jsDAL;
                 schema: this.schema,
                 routine: this.routine,
                 params: this.constructorOptions,
-                $select: this.selectFieldsCsv
+                $select: this.selectFieldsCsv,
+                $captcha: this.captchaVal
             };
         };
         Sproc.prototype.then = function () {
@@ -424,21 +446,23 @@ var jsDAL;
             }
             if (this.selectFieldsCsv)
                 settings.$select = this.selectFieldsCsv;
+            if (this.captchaVal)
+                settings.$captcha = this.captchaVal;
             var startTick = performance.now();
             this.isLoading = true;
             return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
                 .then(function (r) { _this.lastExecutionTime = performance.now() - startTick; _this.isLoading = false; _this.deferred.resolve(r); return r; });
         };
         Sproc.prototype.ExecQuery = function (options) {
-            options = L2.extend(options, { HttpMethod: "GET" }); // default to GET for ExecQuery
+            options = L2.extend({ HttpMethod: "GET" }, options); // default to GET for ExecQuery
             return this.Exec("exec", options);
         };
         Sproc.prototype.ExecNonQuery = function (options) {
-            options = L2.extend(options, { HttpMethod: "POST" }); // default to POST for ExecNonQuery
+            options = L2.extend({ HttpMethod: "POST" }, options); // default to POST for ExecNonQuery
             return this.Exec("execnq", options);
         };
         Sproc.prototype.ExecSingleResult = function (options) {
-            options = L2.extend(options, { HttpMethod: "GET" });
+            options = L2.extend({ HttpMethod: "GET" }, options);
             return this.Exec("execScalar", options).then(function (r) {
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
                     var r1 = null;
@@ -465,6 +489,10 @@ var jsDAL;
             if (fieldNames.length == null)
                 return this;
             this.selectFieldsCsv = fieldNames.join(";");
+            return this;
+        };
+        Sproc.prototype.captcha = function (captchaResponseValue) {
+            this.captchaVal = captchaResponseValue;
             return this;
         };
         return Sproc;

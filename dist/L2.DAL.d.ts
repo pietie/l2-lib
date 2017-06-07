@@ -23,6 +23,7 @@ declare module jsDAL {
         ShowPageLoadingIndicator?: boolean;
         CommandTimeoutInSeconds?: number;
         $select?: string;
+        $captcha?: string;
         HttpMethod?: string;
     }
     function transformResults(r: any): any;
@@ -49,6 +50,7 @@ declare module jsDAL {
         private routineParams;
         private constructorOptions;
         private selectFieldsCsv;
+        private captchaVal;
         lastExecutionTime: number;
         isLoading: boolean;
         private _alwaysCallbacks;
@@ -60,6 +62,7 @@ declare module jsDAL {
             routine: string;
             params: string[];
             $select: string;
+            $captcha: string;
         };
         constructor(schema: string, routine: string, params?: string[], options?: IExecDefaults);
         then(...args: any[]): any;
@@ -69,6 +72,7 @@ declare module jsDAL {
         ExecNonQuery(options?: IExecDefaults): Promise<any>;
         ExecSingleResult(options?: IExecDefaults): Promise<any>;
         Select(...fieldNames: string[][]): Sproc;
+        captcha(captchaResponseValue: string): Sproc;
     }
     class UDF extends Sproc {
         Exec(options?: IExecDefaults): Promise<any>;

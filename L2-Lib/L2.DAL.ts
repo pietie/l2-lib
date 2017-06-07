@@ -65,7 +65,7 @@ module jsDAL {
 
     class ApiResponseEndThenChain { handled: boolean; }
 
-    
+
     (<any>Promise).prototype.ifthen = function (cond, cb) {
         //if (cond) return this.then(cb);  
         return this.then(r => {
@@ -80,6 +80,7 @@ module jsDAL {
         ShowPageLoadingIndicator?: boolean;
         CommandTimeoutInSeconds?: number; // SQL Command timeout
         $select?: string;
+        $captcha?: string;
         HttpMethod?: string;
     }
 
@@ -87,7 +88,7 @@ module jsDAL {
     function ExecGlobal(execFunction: string, httpMethod, dbSource: string, schema: string, routine: string
         , mappedParams: any[]
         , options: (IExecDefaults)
-        , alwaysCBs?: ((res:any)=>any)[]
+        , alwaysCBs?: ((res: any) => any)[]
 
     ): Promise<any> {
 
@@ -108,16 +109,23 @@ module jsDAL {
                 else return encodeURIComponent(p) + "=";
             });
 
-            var tokenGuid: string = null;
+            let tokenGuid: string = null;
+            let customHeaders: { [key: string]: string } = {};
 
             if (options) {
                 if (options.AutoSetTokenGuid) {
                     tokenGuid = window["TokenGuid"];
 
+                    // TODO: Consider moving this to the custom header array
                     if (tokenGuid) parmQueryStringArray.push("tokenGuid=" + tokenGuid);
                 }
 
+                // TODO: Consider moving this to the custom header array
                 if (options.$select) parmQueryStringArray.push("$select=" + options.$select);
+                //if (options.$captcha) parmQueryStringArray.push("$captcha=" + options.$captcha);
+                if (options.$captcha) {
+                    customHeaders["captcha-val"] = options.$captcha;
+                }
 
             }
 
@@ -128,14 +136,25 @@ module jsDAL {
 
             if (Server.overridingDbSource) dbSource = Server.overridingDbSource;
 
-            if (["exec","execnq", "execScalar"].indexOf(execFunction) == -1)
-            {
+            if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error(`Invalid execution method specified: ${execFunction}`);
             }
 
             // GET
             if (httpMethod == "GET") {
-                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, null, alwaysCBs)
+                let headers = null;
+
+                if (customHeaders && customHeaders.length > 0) {
+                    if (headers == null) headers = {};
+                    for (let e in customHeaders) {
+                        headers[e] = customHeaders[e];
+                    }
+                }
+
+                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`
+                    , {
+                        headers: headers
+                    }, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
@@ -155,13 +174,19 @@ module jsDAL {
 
                 if (tokenGuid) bodyContent["tokenGuid"] = tokenGuid;
 
+                let headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+
+                for (let e in customHeaders) {
+                    headers[e] = customHeaders[e];
+                }
+
                 fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}`
                     , {
                         method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
+                        headers: headers,
                         body: JSON.stringify(bodyContent)
                     }, alwaysCBs)
                     .then(checkHttpStatus)
@@ -507,6 +532,7 @@ module jsDAL {
         private constructorOptions: any;
 
         private selectFieldsCsv: string;
+        private captchaVal: string;
 
         public lastExecutionTime: number;
         public isLoading: boolean = false;
@@ -520,14 +546,15 @@ module jsDAL {
             return typeof (val.ExecQuery) === "function" && typeof (val.routine) === "string" && typeof (val.routineParams) === "object";
         }
 
-        public getExecPacket(): { dbSource: string, dbConnection: string, schema: string, routine: string, params: string[], $select: string } {
+        public getExecPacket(): { dbSource: string, dbConnection: string, schema: string, routine: string, params: string[], $select: string, $captcha: string } {
             return {
                 dbSource: this.dbSource,
                 dbConnection: Server.dbConnection,
                 schema: this.schema,
                 routine: this.routine,
                 params: this.constructorOptions,
-                $select: this.selectFieldsCsv
+                $select: this.selectFieldsCsv,
+                $captcha: this.captchaVal
             };
         }
 
@@ -544,7 +571,7 @@ module jsDAL {
             return this.deferred.promise.then.apply(this.deferred.promise, args);
         }
 
-        public always(cb: (...any) => any) : Sproc {
+        public always(cb: (...any) => any): Sproc {
             if (!this._alwaysCallbacks) this._alwaysCallbacks = [];
 
             this._alwaysCallbacks.push(cb);
@@ -581,6 +608,8 @@ module jsDAL {
             }
 
             if (this.selectFieldsCsv) settings.$select = this.selectFieldsCsv;
+            if (this.captchaVal) settings.$captcha = this.captchaVal;
+
             let startTick = performance.now();
             this.isLoading = true;
 
@@ -633,6 +662,10 @@ module jsDAL {
             return this;
         }
 
+        public captcha(captchaResponseValue: string): Sproc {
+            this.captchaVal = captchaResponseValue;
+            return this;
+        }
 
     }
 
@@ -648,7 +681,7 @@ module jsDAL {
 
 
     export class ServerVariables {
-        private static PREFIX_MARKER:string = "$jsDAL$";
+        private static PREFIX_MARKER: string = "$jsDAL$";
         static get ClientIP(): string {
             return `${ServerVariables.PREFIX_MARKER}.RemoteClient.IP`;
         }

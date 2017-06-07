@@ -17,7 +17,8 @@ interface ISprocExecGeneric1<O/*Output*/, T/*Result set*/, U/*Parameter*/> {
     ExecNonQuery(parameters?: U): Promise<ApiResponseNoResult<O>>;
     then<U>(onFulfilled?: (value: T) => U | Promise<U>, onRejected?: (error: any) => U | Promise<U>): Promise<U>;
     always(cb: (...any) => any): ISprocExecGeneric1<O, T, U>;
-    Select(any): jsDAL.Sproc;
+    Select(any): ISprocExecGeneric1<O, T, U>;
+    captcha(captchaResponseValue: string): ISprocExecGeneric1<O, T, U>;
 }
 
 interface ISprocExecGeneric2<O, T1, T2, U> extends ISprocExecGeneric1<O, T1, U> { ExecQuery(parameters?: U): Promise<ApiResponse2<O, T1, T2>>; always(cb: (...any) => any): ISprocExecGeneric2<O, T1, T2, U>; }
