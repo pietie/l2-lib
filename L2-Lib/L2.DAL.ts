@@ -144,7 +144,7 @@ module jsDAL {
             if (httpMethod == "GET") {
                 let headers = null;
 
-                if (customHeaders && customHeaders.length > 0) {
+                if (customHeaders && Object.keys(customHeaders).length > 0) {
                     if (headers == null) headers = {};
                     for (let e in customHeaders) {
                         headers[e] = customHeaders[e];

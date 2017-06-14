@@ -100,7 +100,7 @@ var jsDAL;
             // GET
             if (httpMethod == "GET") {
                 var headers = null;
-                if (customHeaders && customHeaders.length > 0) {
+                if (customHeaders && Object.keys(customHeaders).length > 0) {
                     if (headers == null)
                         headers = {};
                     for (var e in customHeaders) {
