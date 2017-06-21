@@ -151,10 +151,14 @@ module jsDAL {
                     }
                 }
 
-                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`
-                    , {
-                        headers: headers
-                    }, alwaysCBs)
+                let init = null;
+
+                if (headers)
+                {
+                    init = { headers: headers };
+                }
+
+                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, init, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
