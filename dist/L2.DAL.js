@@ -107,9 +107,11 @@ var jsDAL;
                         headers[e] = customHeaders[e];
                     }
                 }
-                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, {
-                    headers: headers
-                }, alwaysCBs)
+                var init = null;
+                if (headers) {
+                    init = { headers: headers };
+                }
+                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
                     .then(checkHttpStatus)
                     .then(parseJSON)
                     .then(transformResults)
