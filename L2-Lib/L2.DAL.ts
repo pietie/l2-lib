@@ -239,6 +239,10 @@ module jsDAL {
                 init.headers["Authorization"] = `Bearer ${jsDAL.Server.jwt.access_token}`;
             }
 
+
+            // iOS prefers undefined over null
+            if (init == null) init = undefined;
+
             fetch(url, init).then((r: any) => {
                 r.fetch = { url: url, init: init };
                 resolve(r);
