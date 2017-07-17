@@ -20,6 +20,7 @@ declare module jsDAL {
     interface IExecDefaults {
         AutoSetTokenGuid?: boolean;
         AutoProcessApiResponse?: boolean;
+        HandleExceptions?: boolean;
         ShowPageLoadingIndicator?: boolean;
         CommandTimeoutInSeconds?: number;
         $select?: string;

@@ -77,6 +77,7 @@ module jsDAL {
     export interface IExecDefaults {
         AutoSetTokenGuid?: boolean;
         AutoProcessApiResponse?: boolean;
+        HandleExceptions?: boolean;
         ShowPageLoadingIndicator?: boolean;
         CommandTimeoutInSeconds?: number; // SQL Command timeout
         $select?: string;
@@ -153,18 +154,17 @@ module jsDAL {
 
                 let init = null;
 
-                if (headers)
-                {
+                if (headers) {
                     init = { headers: headers };
                 }
 
                 fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, init, alwaysCBs)
-                    .then(checkHttpStatus)
+                    .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
                     .then(r => resolve(r))
-                ["catch"](r => { reject(fetchCatch(r)); return r; })
+                ["catch"](r => { reject(fetchCatch(r, options)); return r; })
                 ["catch"](function (e) {
                     if (e instanceof ApiResponseEndThenChain) return;
                     else throw e;
@@ -193,33 +193,18 @@ module jsDAL {
                         headers: headers,
                         body: JSON.stringify(bodyContent)
                     }, alwaysCBs)
-                    .then(checkHttpStatus)
+                    .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
                     .then(r => resolve(r))
-                ["catch"](r => { reject(fetchCatch(r)); })
+                ["catch"](r => { reject(fetchCatch(r, options)); })
                 ["catch"](function (e) {
                     if (e instanceof ApiResponseEndThenChain) return;
                     else throw e;
                 })
                     ;
             }
-            //else if (httpMethod == "SCALAR") {
-            //    fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, {
-            //        credentials: 'same-origin'
-            //    }, alwaysCBs)
-            //        .then(checkHttpStatus)
-            //        .then(parseJSON)
-            //        .ifthen(options.AutoProcessApiResponse, processApiResponse)
-            //        .then(r => resolve(r))
-            //    ["catch"](r => { reject(fetchCatch(r)); })
-            //    ["catch"](function (e) {
-            //        if (e instanceof ApiResponseEndThenChain) return;
-            //        else throw e;
-            //    })
-            //        ;
-            //}
             else throw "Invalid HTTP method: " + httpMethod;
 
         });
@@ -248,6 +233,7 @@ module jsDAL {
                 resolve(r);
                 return r;
             })["catch"](err => {
+                // TODO: Figure out what to do here...zonejs fucks up any chance of a meaningful error.
                 err.fetch = { url: url, init: init };
                 reject(err);
                 return err;
@@ -306,7 +292,7 @@ module jsDAL {
         return r;
     }
 
-    function checkHttpStatus(response: Response | any): any {
+    function checkHttpStatus(response: Response | any, options?: IExecDefaults): any {
 
         response.hasReachedResponse = true;
         if (response.status >= 200 && response.status < 300) {
@@ -322,15 +308,20 @@ module jsDAL {
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json().then(function (json) {
                     L2.exclamation(json.Message, "Http status code " + response.status);
-                    L2.handleException(new Error(JSON.stringify(json)));
-                    // TODO:
-                    //!window.ICE.LogJavascriptErrorToDb(new Error(JSON.stringify(json)), null, { origin: "checkHttpStatus 01", fetch: fetchDetails });
+
+                    if (options && options.HandleExceptions) {
+                        L2.handleException(new Error(JSON.stringify(json)));
+                    }
+
                     throw json;
                 });
             } else {
                 return response.text().then(function (text) {
                     L2.exclamation(text, "Http status code 02 " + response.status);
-                    L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails });
+
+                    if (options && options.HandleExceptions) {
+                        L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails });
+                    }
 
                     throw response;
                 });
@@ -346,7 +337,7 @@ module jsDAL {
         });
     }
 
-    function fetchCatch(ex: any) {
+    function fetchCatch(ex: any, options?: IExecDefaults) {
         //console.log("fetch...");
         //console.info(ex);
 
@@ -364,7 +355,9 @@ module jsDAL {
 
             if (ex.fetch) fetchDetails = JSON.stringify(ex.fetch);
 
-            L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+            if (options && options.HandleExceptions) {
+                L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+            }
 
             var msg = ex;
 
@@ -430,6 +423,7 @@ module jsDAL {
             let settings: IExecDefaults = {
                 AutoSetTokenGuid: true,
                 AutoProcessApiResponse: true,
+                HandleExceptions: true,
                 ShowPageLoadingIndicator: true,
                 CommandTimeoutInSeconds: 60
             };
@@ -462,7 +456,7 @@ module jsDAL {
                 var parmQueryString = optionsQueryStringArray.join("&");
 
                 fetchWrap(`${Server.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
-                    .then(checkHttpStatus)
+                    .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
@@ -484,7 +478,7 @@ module jsDAL {
 
                     })
                     .then(r => resolve(r))
-                ["catch"](r => { fetchCatch(r); reject(r) })
+                ["catch"](r => { fetchCatch(r, options); reject(r) })
                     ;
 
             });
@@ -513,6 +507,7 @@ module jsDAL {
         private static _exeDefaults: IExecDefaults = {
             AutoSetTokenGuid: true,
             AutoProcessApiResponse: true,
+            HandleExceptions: true,
             ShowPageLoadingIndicator: true,
             CommandTimeoutInSeconds: 60
         };

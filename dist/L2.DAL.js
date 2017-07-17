@@ -112,11 +112,11 @@ var jsDAL;
                     init = { headers: headers };
                 }
                 fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
-                    .then(checkHttpStatus)
+                    .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r)); return r; })["catch"](function (e) {
+                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r, options)); return r; })["catch"](function (e) {
                     if (e instanceof ApiResponseEndThenChain)
                         return;
                     else
@@ -140,11 +140,11 @@ var jsDAL;
                     headers: headers,
                     body: JSON.stringify(bodyContent)
                 }, alwaysCBs)
-                    .then(checkHttpStatus)
+                    .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r)); })["catch"](function (e) {
+                    .then(function (r) { return resolve(r); })["catch"](function (r) { reject(fetchCatch(r, options)); })["catch"](function (e) {
                     if (e instanceof ApiResponseEndThenChain)
                         return;
                     else
@@ -164,11 +164,15 @@ var jsDAL;
                     init.headers = {};
                 init.headers["Authorization"] = "Bearer " + jsDAL.Server.jwt.access_token;
             }
+            // iOS prefers undefined over null
+            if (init == null)
+                init = undefined;
             fetch(url, init).then(function (r) {
                 r.fetch = { url: url, init: init };
                 resolve(r);
                 return r;
             })["catch"](function (err) {
+                // TODO: Figure out what to do here...zonejs fucks up any chance of a meaningful error.
                 err.fetch = { url: url, init: init };
                 reject(err);
                 return err;
@@ -212,7 +216,7 @@ var jsDAL;
         return r;
     }
     jsDAL.transformResults = transformResults;
-    function checkHttpStatus(response) {
+    function checkHttpStatus(response, options) {
         response.hasReachedResponse = true;
         if (response.status >= 200 && response.status < 300) {
             return response;
@@ -226,16 +230,18 @@ var jsDAL;
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json().then(function (json) {
                     L2.exclamation(json.Message, "Http status code " + response.status);
-                    L2.handleException(new Error(JSON.stringify(json)));
-                    // TODO:
-                    //!window.ICE.LogJavascriptErrorToDb(new Error(JSON.stringify(json)), null, { origin: "checkHttpStatus 01", fetch: fetchDetails });
+                    if (options && options.HandleExceptions) {
+                        L2.handleException(new Error(JSON.stringify(json)));
+                    }
                     throw json;
                 });
             }
             else {
                 return response.text().then(function (text) {
                     L2.exclamation(text, "Http status code 02 " + response.status);
-                    L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                    if (options && options.HandleExceptions) {
+                        L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                    }
                     throw response;
                 });
             }
@@ -249,7 +255,7 @@ var jsDAL;
             return json;
         });
     }
-    function fetchCatch(ex) {
+    function fetchCatch(ex, options) {
         //console.log("fetch...");
         //console.info(ex);
         if (ex instanceof ApiResponseEndThenChain) {
@@ -263,7 +269,9 @@ var jsDAL;
             var fetchDetails = null;
             if (ex.fetch)
                 fetchDetails = JSON.stringify(ex.fetch);
-            L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+            if (options && options.HandleExceptions) {
+                L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+            }
             var msg = ex;
             if (ex.Message)
                 msg = ex.Message;
@@ -316,6 +324,7 @@ var jsDAL;
             var settings = {
                 AutoSetTokenGuid: true,
                 AutoProcessApiResponse: true,
+                HandleExceptions: true,
                 ShowPageLoadingIndicator: true,
                 CommandTimeoutInSeconds: 60
             };
@@ -338,7 +347,7 @@ var jsDAL;
                 }
                 var parmQueryString = optionsQueryStringArray.join("&");
                 fetchWrap(Server.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
-                    .then(checkHttpStatus)
+                    .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
                     .ifthen(options.AutoProcessApiResponse, processApiResponse)
@@ -355,7 +364,7 @@ var jsDAL;
                         routine.deferred.resolve(transformed);
                     }
                 })
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { fetchCatch(r); reject(r); });
+                    .then(function (r) { return resolve(r); })["catch"](function (r) { fetchCatch(r, options); reject(r); });
             });
         };
         Batch.prototype.ExecNonQuery = function (options) {
@@ -502,6 +511,7 @@ var jsDAL;
     Sproc._exeDefaults = {
         AutoSetTokenGuid: true,
         AutoProcessApiResponse: true,
+        HandleExceptions: true,
         ShowPageLoadingIndicator: true,
         CommandTimeoutInSeconds: 60
     };
