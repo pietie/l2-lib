@@ -68,7 +68,7 @@ declare module jsDAL {
         constructor(schema: string, routine: string, params?: string[], options?: IExecDefaults);
         then(...args: any[]): any;
         always(cb: (...any) => any): Sproc;
-        protected Exec(execFunction: string, options?: IExecDefaults): Promise<any>;
+        protected ExecRoutine(execFunction: string, options?: IExecDefaults): Promise<any>;
         ExecQuery(options?: IExecDefaults): Promise<any>;
         ExecNonQuery(options?: IExecDefaults): Promise<any>;
         ExecSingleResult(options?: IExecDefaults): Promise<any>;

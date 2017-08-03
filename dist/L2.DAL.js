@@ -435,7 +435,7 @@ var jsDAL;
             this._alwaysCallbacks.push(cb);
             return this;
         };
-        Sproc.prototype.Exec = function (execFunction, options) {
+        Sproc.prototype.ExecRoutine = function (execFunction, options) {
             var _this = this;
             if (!execFunction || execFunction == "")
                 throw new Error("'execFunction' must be specified. Consider using the methods ExecQuery or ExecNonQuery.");
@@ -466,15 +466,15 @@ var jsDAL;
         };
         Sproc.prototype.ExecQuery = function (options) {
             options = L2.extend({ HttpMethod: "GET" }, options); // default to GET for ExecQuery
-            return this.Exec("exec", options);
+            return this.ExecRoutine("exec", options);
         };
         Sproc.prototype.ExecNonQuery = function (options) {
             options = L2.extend({ HttpMethod: "POST" }, options); // default to POST for ExecNonQuery
-            return this.Exec("execnq", options);
+            return this.ExecRoutine("execnq", options);
         };
         Sproc.prototype.ExecSingleResult = function (options) {
             options = L2.extend({ HttpMethod: "GET" }, options);
-            return this.Exec("execScalar", options).then(function (r) {
+            return this.ExecRoutine("execScalar", options).then(function (r) {
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
                     var r1 = null;
                     var op = r.Data.OutputParms;
@@ -522,7 +522,7 @@ var jsDAL;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         UDF.prototype.Exec = function (options) {
-            return _super.prototype.Exec.call(this, "SCALAR", options).then(function (r) {
+            return _super.prototype.ExecRoutine.call(this, "SCALAR", options).then(function (r) {
                 // return the single result value
                 if (r.IsDate)
                     return new Date(r.Data);

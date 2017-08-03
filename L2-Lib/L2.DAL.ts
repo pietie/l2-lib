@@ -582,7 +582,7 @@ module jsDAL {
             return this;
         }
 
-        protected Exec(execFunction: string, options?: IExecDefaults): Promise<any> {
+        protected ExecRoutine(execFunction: string, options?: IExecDefaults): Promise<any> {
 
             if (!execFunction || execFunction == "")
                 throw new Error(`'execFunction' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`);
@@ -622,17 +622,17 @@ module jsDAL {
 
         public ExecQuery(options?: IExecDefaults): Promise<any> {
             options = L2.extend({ HttpMethod: "GET" }, options); // default to GET for ExecQuery
-            return this.Exec("exec", options);
+            return this.ExecRoutine("exec", options);
         }
 
         public ExecNonQuery(options?: IExecDefaults): Promise<any> {
             options = L2.extend({ HttpMethod: "POST" }, options); // default to POST for ExecNonQuery
-            return this.Exec("execnq", options);
+            return this.ExecRoutine("execnq", options);
         }
 
         public ExecSingleResult(options?: IExecDefaults): Promise<any> {
             options = L2.extend({ HttpMethod: "GET" }, options);
-            return this.Exec("execScalar", options).then(r => {
+            return this.ExecRoutine("exec", options).then(r => {
 
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
 
@@ -674,7 +674,7 @@ module jsDAL {
 
     export class UDF extends Sproc {
         public Exec(options?: IExecDefaults): Promise<any> {
-            return super.Exec("SCALAR", options).then(r => {
+            return super.ExecRoutine("SCALAR", options).then(r => {
                 // return the single result value
                 if (r.IsDate) return new Date(r.Data);
                 return r.Data;
