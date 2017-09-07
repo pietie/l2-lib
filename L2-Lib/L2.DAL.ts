@@ -674,7 +674,8 @@ module jsDAL {
 
     export class UDF extends Sproc {
         public Exec(options?: IExecDefaults): Promise<any> {
-            return super.ExecRoutine("SCALAR", options).then(r => {
+            options = L2.extend({ HttpMethod: "GET" }, options);
+            return super.ExecRoutine("execScalar", options).then(r => {
                 // return the single result value
                 if (r.IsDate) return new Date(r.Data);
                 return r.Data;
