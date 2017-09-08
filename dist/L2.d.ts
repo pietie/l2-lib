@@ -21,7 +21,7 @@ export declare class BrowserStore {
     static removeLocalItem: (key: any) => void;
     private static processRequest<T>(store, key, value, storeName);
 }
-export default class L2 {
+export declare class L2 {
     private static _customOutputMsgHandler;
     static BrowserStore: {
         local<T>(key: string, value?: T): T;
@@ -48,4 +48,22 @@ export default class L2 {
     private static fetchCatch(ex);
     private static checkHttpStatus(response);
     private static parseJSON(response);
+}
+export interface JWT {
+    access_token?: string;
+    expires_in?: number;
+    token_type?: string;
+}
+export declare class jsDALServer {
+    static serverUrl: string;
+    static dbConnection: string;
+    static overridingDbSource: string;
+    static jwt: JWT;
+    static configure(options: IDALServerOptions): void;
+}
+export interface IDALServerOptions {
+    serverUrl?: string;
+    dbConnection?: string;
+    overridingDbSource?: string;
+    jwt?: JWT;
 }

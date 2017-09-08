@@ -1,4 +1,4 @@
-import jsDAL from "./L2.DAL";
+//import { jsDAL } from "./L2.DAL";
 // TODO: There is now a lot of overlap between L2 and L2.DAL. Make L2.DAL call L2 where overlap occurs? 
 var ApiResponseEndThenChain = (function () {
     function ApiResponseEndThenChain() {
@@ -173,7 +173,7 @@ var L2 = (function () {
     ;
     L2.clientIP = function () {
         return new Promise(function (resolve, reject) {
-            fetch(jsDAL.Server.serverUrl + "/api/util/clientip")
+            fetch(jsDALServer.serverUrl + "/api/util/clientip")
                 .then(function (r) {
                 if (r.status >= 200 && r.status < 300) {
                     return r;
@@ -325,7 +325,21 @@ var L2 = (function () {
     };
     return L2;
 }());
-export default L2;
+export { L2 };
+var jsDALServer = (function () {
+    function jsDALServer() {
+    }
+    jsDALServer.configure = function (options) {
+        if (options.dbConnection == "")
+            options.dbConnection = null;
+        jsDALServer.serverUrl = options.serverUrl;
+        jsDALServer.dbConnection = options.dbConnection;
+        jsDALServer.jwt = options.jwt;
+        jsDALServer.overridingDbSource = options.overridingDbSource;
+    };
+    return jsDALServer;
+}());
+export { jsDALServer };
 delete L2.BrowserStore;
 L2.BrowserStore = BrowserStore; // don't know the correct TS way
 //# sourceMappingURL=L2.js.map

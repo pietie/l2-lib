@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Component, Input, Directive, QueryList, ContentChildren, ViewContainerRef, TemplateRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import jsDAL from '../../L2.DAL';
+import { jsDAL } from '../../L2.DAL';
 var L2GridColumn = (function () {
     function L2GridColumn() {
         this.bound = null;

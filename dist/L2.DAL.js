@@ -8,23 +8,9 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-import L2 from "./L2";
-var jsDAL;
+import { L2, jsDALServer } from "./L2";
+export var jsDAL;
 (function (jsDAL) {
-    var Server = (function () {
-        function Server() {
-        }
-        Server.configure = function (options) {
-            if (options.dbConnection == "")
-                options.dbConnection = null;
-            Server.serverUrl = options.serverUrl;
-            Server.dbConnection = options.dbConnection;
-            Server.jwt = options.jwt;
-            Server.overridingDbSource = options.overridingDbSource;
-        };
-        return Server;
-    }());
-    jsDAL.Server = Server;
     var ApiResponseType;
     (function (ApiResponseType) {
         ApiResponseType[ApiResponseType["Unknown"] = 0] = "Unknown";
@@ -92,8 +78,8 @@ var jsDAL;
                 parmQueryString = "?" + parmQueryString;
             else
                 parmQueryString = "";
-            if (Server.overridingDbSource)
-                dbSource = Server.overridingDbSource;
+            if (jsDALServer.overridingDbSource)
+                dbSource = jsDALServer.overridingDbSource;
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error("Invalid execution method specified: " + execFunction);
             }
@@ -111,7 +97,7 @@ var jsDAL;
                 if (headers) {
                     init = { headers: headers };
                 }
-                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
+                fetchWrap(jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + jsDALServer.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
                     .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -135,7 +121,7 @@ var jsDAL;
                 for (var e in customHeaders) {
                     headers[e] = customHeaders[e];
                 }
-                fetchWrap(Server.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + Server.dbConnection + "/" + schema + "/" + routine, {
+                fetchWrap(jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + jsDALServer.dbConnection + "/" + schema + "/" + routine, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(bodyContent)
@@ -157,12 +143,12 @@ var jsDAL;
     }
     function fetchWrap(url, init, alwaysCBs) {
         return new Promise(function (resolve, reject) {
-            if (jsDAL.Server.jwt != null) {
+            if (jsDALServer.jwt != null) {
                 if (!init)
                     init = {};
                 if (!init.headers)
                     init.headers = {};
-                init.headers["Authorization"] = "Bearer " + jsDAL.Server.jwt.access_token;
+                init.headers["Authorization"] = "Bearer " + jsDALServer.jwt.access_token;
             }
             // iOS prefers undefined over null
             if (init == null)
@@ -346,7 +332,7 @@ var jsDAL;
                     }
                 }
                 var parmQueryString = optionsQueryStringArray.join("&");
-                fetchWrap(Server.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
+                fetchWrap(jsDALServer.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
                     .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -414,7 +400,7 @@ var jsDAL;
         Sproc.prototype.getExecPacket = function () {
             return {
                 dbSource: this.dbSource,
-                dbConnection: Server.dbConnection,
+                dbConnection: jsDALServer.dbConnection,
                 schema: this.schema,
                 routine: this.routine,
                 params: this.constructorOptions,
@@ -474,7 +460,7 @@ var jsDAL;
         };
         Sproc.prototype.ExecSingleResult = function (options) {
             options = L2.extend({ HttpMethod: "GET" }, options);
-            return this.ExecRoutine("execScalar", options).then(function (r) {
+            return this.ExecRoutine("exec", options).then(function (r) {
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
                     var r1 = null;
                     var op = r.Data.OutputParms;
@@ -522,7 +508,8 @@ var jsDAL;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         UDF.prototype.Exec = function (options) {
-            return _super.prototype.ExecRoutine.call(this, "SCALAR", options).then(function (r) {
+            options = L2.extend({ HttpMethod: "GET" }, options);
+            return _super.prototype.ExecRoutine.call(this, "execScalar", options).then(function (r) {
                 // return the single result value
                 if (r.IsDate)
                     return new Date(r.Data);
@@ -547,5 +534,5 @@ var jsDAL;
     ServerVariables.PREFIX_MARKER = "$jsDAL$";
     jsDAL.ServerVariables = ServerVariables;
 })(jsDAL || (jsDAL = {}));
-export default jsDAL;
+//export default jsDAL;
 //# sourceMappingURL=L2.DAL.js.map

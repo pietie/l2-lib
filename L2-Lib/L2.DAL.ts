@@ -1,51 +1,16 @@
-﻿import L2 from "./L2"
+﻿import { L2, jsDALServer } from "./L2";
+
+//L2 = window["L2"] || L2;
 
 interface Error {
     response: any;
 }
 
-export interface JWT {
-    access_token?: string;
-    expires_in?: number;
-    token_type?: string;
-}
 
 
-module jsDAL {
+export module jsDAL {
 
-    export class Server {
-        //private static _serverUrl: string;
-        //private static _dbConnection: string;
-        // 30/08/2016, PL: IE8 does not support GET/SET properties
-        //static get serverUrl(): string {
-        //    return Server._serverUrl;
-        //}
-
-        //static get dbConnection(): string {
-        //    return Server._dbConnection;
-        //}
-        public static serverUrl: string;
-        public static dbConnection: string;
-        public static overridingDbSource: string;
-        public static jwt: JWT;
-
-        static configure(options: IDALServerOptions) {
-
-            if (options.dbConnection == "") options.dbConnection = null;
-
-            Server.serverUrl = options.serverUrl;
-            Server.dbConnection = options.dbConnection;
-            Server.jwt = options.jwt;
-            Server.overridingDbSource = options.overridingDbSource;
-        }
-    }
-
-    export interface IDALServerOptions {
-        serverUrl?: string;
-        dbConnection?: string;
-        overridingDbSource?: string;
-        jwt?: JWT;
-    }
+  
 
     enum ApiResponseType {
         Unknown = 0,
@@ -135,7 +100,7 @@ module jsDAL {
             if (parmQueryString && parmQueryString.length > 0 && parmQueryString != "") parmQueryString = "?" + parmQueryString;
             else parmQueryString = "";
 
-            if (Server.overridingDbSource) dbSource = Server.overridingDbSource;
+            if (jsDALServer.overridingDbSource) dbSource = jsDALServer.overridingDbSource;
 
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error(`Invalid execution method specified: ${execFunction}`);
@@ -158,7 +123,7 @@ module jsDAL {
                     init = { headers: headers };
                 }
 
-                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}${parmQueryString}`, init, alwaysCBs)
+                fetchWrap(`${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}${parmQueryString}`, init, alwaysCBs)
                     .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -187,7 +152,7 @@ module jsDAL {
                     headers[e] = customHeaders[e];
                 }
 
-                fetchWrap(`${Server.serverUrl}/api/${execFunction}/${dbSource}/${Server.dbConnection}/${schema}/${routine}`
+                fetchWrap(`${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}`
                     , {
                         method: 'POST',
                         headers: headers,
@@ -216,12 +181,12 @@ module jsDAL {
 
         return new Promise<Response>((resolve, reject) => {
 
-            if (jsDAL.Server.jwt != null) {
+            if (jsDALServer.jwt != null) {
 
                 if (!init) init = {};
                 if (!init.headers) init.headers = {};
 
-                init.headers["Authorization"] = `Bearer ${jsDAL.Server.jwt.access_token}`;
+                init.headers["Authorization"] = `Bearer ${jsDALServer.jwt.access_token}`;
             }
 
 
@@ -455,7 +420,7 @@ module jsDAL {
 
                 var parmQueryString = optionsQueryStringArray.join("&");
 
-                fetchWrap(`${Server.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
+                fetchWrap(`${jsDALServer.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
                     .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -552,7 +517,7 @@ module jsDAL {
         public getExecPacket(): { dbSource: string, dbConnection: string, schema: string, routine: string, params: string[], $select: string, $captcha: string } {
             return {
                 dbSource: this.dbSource,
-                dbConnection: Server.dbConnection,
+                dbConnection: jsDALServer.dbConnection,
                 schema: this.schema,
                 routine: this.routine,
                 params: this.constructorOptions,
@@ -692,6 +657,5 @@ module jsDAL {
     }
 }
 
+//export default jsDAL;
 
-
-export default jsDAL;

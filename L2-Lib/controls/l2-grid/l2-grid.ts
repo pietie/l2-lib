@@ -1,7 +1,7 @@
 ﻿import { Component, Input, Output, EventEmitter, Directive, QueryList, ContentChildren, AfterContentInit, ViewContainerRef, TemplateRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
-import jsDAL from '../../L2.DAL'
+import { jsDAL } from '../../L2.DAL';
 
 
 @Directive({ selector: 'column' })

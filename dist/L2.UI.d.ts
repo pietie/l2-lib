@@ -11,13 +11,14 @@ declare module DAL {
     interface UDF {
     }
 }
-declare class UI {
+export { DataTables, JQuery, DAL };
+export declare class UI {
     private static IsNullOrEmpty(val);
     static A: (options?: AnchorOptions) => any;
     static NewGrid: (options?: NewGridOptions & DataTables.Settings) => void;
     static NewCbo(options?: NewCboOptions): any;
 }
-interface NewCboOptions {
+export interface NewCboOptions {
     id?: string;
     name?: string;
     chosen?: boolean;
@@ -33,7 +34,7 @@ interface NewCboOptions {
     autoDestroy?: boolean;
     multiSelect?: boolean;
 }
-interface NewGridOptions {
+export interface NewGridOptions {
     target?: string | HTMLElement | JQuery | any;
     sproc?: DAL.Sproc | DAL.UDF;
     data?: any;
@@ -45,12 +46,10 @@ interface NewGridOptions {
     autoDestroy?: boolean;
     callBack?: () => void;
 }
-interface AnchorOptions {
+export interface AnchorOptions {
     text?: string;
     href?: string | Object;
     visible?: boolean;
     cssClass?: string;
     target?: string | HTMLElement | JQuery;
 }
-export { JQuery, AnchorOptions, DataTables, DAL, NewGridOptions, NewCboOptions };
-export default UI;

@@ -1,4 +1,4 @@
-﻿import jsDAL from "./L2.DAL"
+﻿//import { jsDAL } from "./L2.DAL";
 
 
 // TODO: Implement DI-based messaging service?
@@ -124,7 +124,7 @@ class StorageObject {
 
 
 
-export default class L2 {
+export class L2 {
 
     private static _customOutputMsgHandler: IL2OutputMessageHandler;
 
@@ -230,7 +230,7 @@ export default class L2 {
 
     static clientIP(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            fetch(`${jsDAL.Server.serverUrl}/api/util/clientip`)
+            fetch(`${jsDALServer.serverUrl}/api/util/clientip`)
                 .then((r) => {
                     if (r.status >= 200 && r.status < 300) { return r; }
                     else { resolve(null); }
@@ -432,6 +432,47 @@ export default class L2 {
     }
 
 
+}
+
+export interface JWT {
+    access_token?: string;
+    expires_in?: number;
+    token_type?: string;
+}
+
+
+export class jsDALServer {
+    //private static _serverUrl: string;
+    //private static _dbConnection: string;
+    // 30/08/2016, PL: IE8 does not support GET/SET properties
+    //static get serverUrl(): string {
+    //    return Server._serverUrl;
+    //}
+
+    //static get dbConnection(): string {
+    //    return Server._dbConnection;
+    //}
+    public static serverUrl: string;
+    public static dbConnection: string;
+    public static overridingDbSource: string;
+    public static jwt: JWT;
+
+    static configure(options: IDALServerOptions) {
+
+        if (options.dbConnection == "") options.dbConnection = null;
+
+        jsDALServer.serverUrl = options.serverUrl;
+        jsDALServer.dbConnection = options.dbConnection;
+        jsDALServer.jwt = options.jwt;
+        jsDALServer.overridingDbSource = options.overridingDbSource;
+    }
+}
+
+export interface IDALServerOptions {
+    serverUrl?: string;
+    dbConnection?: string;
+    overridingDbSource?: string;
+    jwt?: JWT;
 }
 
 delete L2.BrowserStore;

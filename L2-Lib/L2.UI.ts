@@ -4,12 +4,13 @@ var __extends = (this && this.__extends) || function (d, b) { for (var p in b) i
 // TODO: Get rid of jQuery dependency!!!
 
 declare namespace DataTables {
-    interface Settings {
+    export interface Settings {
         columns?: any;
     }
     
 
 }
+
 declare var $: any;
 
 interface JQuery { }
@@ -20,7 +21,9 @@ declare module DAL {
     export interface UDF { }
 }
 
-class UI {
+export { DataTables, JQuery, DAL };
+
+export class UI {
 
     private static IsNullOrEmpty(val: string):boolean {
         return val == null || val == "";
@@ -349,7 +352,7 @@ class UI {
 
 }
 
-interface NewCboOptions {
+export interface NewCboOptions {
     id?: string;
     name?: string;
     chosen?: boolean;
@@ -366,7 +369,7 @@ interface NewCboOptions {
     multiSelect?: boolean;
 }
 
-interface NewGridOptions {
+export interface NewGridOptions {
     target?: string | HTMLElement | JQuery | any;
     sproc?: DAL.Sproc | DAL.UDF /*| ISprocExecGeneric0<any, any>*/
     data?: any;
@@ -380,7 +383,7 @@ interface NewGridOptions {
     //columns?: any[];
 }
 
-interface AnchorOptions {
+export interface AnchorOptions {
     text?: string;
     href?: string | Object;
     visible?: boolean;
@@ -389,5 +392,5 @@ interface AnchorOptions {
 }
 
 
-export { JQuery, AnchorOptions, DataTables, DAL, NewGridOptions, NewCboOptions }
-export default UI;
+
+//export default UI;

@@ -1,22 +1,4 @@
-export interface JWT {
-    access_token?: string;
-    expires_in?: number;
-    token_type?: string;
-}
-declare module jsDAL {
-    class Server {
-        static serverUrl: string;
-        static dbConnection: string;
-        static overridingDbSource: string;
-        static jwt: JWT;
-        static configure(options: IDALServerOptions): void;
-    }
-    interface IDALServerOptions {
-        serverUrl?: string;
-        dbConnection?: string;
-        overridingDbSource?: string;
-        jwt?: JWT;
-    }
+export declare module jsDAL {
     interface IExecDefaults {
         AutoSetTokenGuid?: boolean;
         AutoProcessApiResponse?: boolean;
@@ -83,4 +65,3 @@ declare module jsDAL {
         static readonly ClientIP: string;
     }
 }
-export default jsDAL;

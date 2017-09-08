@@ -113,6 +113,7 @@ var UI = (function () {
     };
     return UI;
 }());
+export { UI };
 UI.A = function (options) {
     try {
         var settings = {
@@ -259,5 +260,5 @@ UI.NewGrid = function (options) {
         throw ex;
     }
 };
-export default UI;
+//export default UI; 
 //# sourceMappingURL=L2.UI.js.map
