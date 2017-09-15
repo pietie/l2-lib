@@ -1,13 +1,13 @@
 ﻿export class KeyValueStore {
 
     // todo: Have IndexDB backend with fallback to Browser local storage!
-    public static open<T>(storeName: string): <T>(keyName:string, value?: T)=>Promise<T> {
+    public static open<T>(storeName: string): <T>(keyName: string, value?: T) => Promise<T> {
 
         let dbPromise = KeyValueStore.createDBAndStore(storeName);
 
         // TODO: we can eventually use await on createDBAndStore if TS supports async on ES5/ES3  (I believe it already does..perhaps my TS version here is too low)
 
-        return <T>(keyName: string, value?: T):Promise<T> => {
+        return <T>(keyName: string, value?: T): Promise<T> => {
 
             return new Promise<T>((resolve, reject) => {
 
@@ -24,13 +24,13 @@
 
                     }
 
-                }).catch(e=>reject(e));
-               
+                }).catch(e => reject(e));
+
             });
 
 
         };
-        
+
 
     }
 
@@ -55,31 +55,31 @@
                 db.onerror = (event) => {
                     reject(event);
                 };
-                
-                let objectStore = db.createObjectStore("ConfigKey", {}); 
+
+                let objectStore = db.createObjectStore("ConfigKey", {});
             };
 
         });
     }
 
-    private static getValue<T>(db:IDBDatabase, keyName:string) : Promise<T> {
+    private static getValue<T>(db: IDBDatabase, keyName: string): Promise<T> {
         return new Promise<T>((resolve, reject) => {
 
             let transaction = db.transaction(["ConfigKey"], "readwrite");
             let objectStore: IDBObjectStore = transaction.objectStore("ConfigKey");
-            
+
             let getRequest = objectStore.get(keyName);
 
             transaction.onerror = (ev) => { reject(ev); };
             getRequest.onerror = (ev) => { reject(ev); };
 
-            getRequest.onsuccess = (event:any) => { resolve(event.target.result); }
+            getRequest.onsuccess = (event: any) => { resolve(event.target.result); }
 
         });
 
     }
 
-    private static setValue<T>(db: IDBDatabase, keyName: string, value:T): Promise<T> {
+    private static setValue<T>(db: IDBDatabase, keyName: string, value: T): Promise<T> {
         return new Promise<T>((resolve, reject) => {
 
             let transaction = db.transaction(["ConfigKey"], "readwrite");
@@ -94,6 +94,23 @@
 
         });
 
+    }
+
+    // https://github.com/jakearchibald/idb-keyval/blob/master/idb-keyval.js
+           /*
+        return withStore('readonly', function (store) {
+            // This would be store.getAllKeys(), but it isn't supported by Edge or Safari.
+            // And openKeyCursor isn't supported by Safari.
+            (store.openKeyCursor || store.openCursor).call(store).onsuccess = function () {
+                if (!this.result) return;
+                keys.push(this.result.key);
+                this.result.continue();
+            };
+        }).then(function () {
+            return keys;
+            });
+
+        */
     }
 
 

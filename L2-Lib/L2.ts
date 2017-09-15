@@ -1,5 +1,14 @@
 ﻿//import { jsDAL } from "./L2.DAL";
 
+if (typeof ((<any>Promise).prototype.ifthen) == "undefined") {
+    (<any>Promise).prototype.ifthen = function (cond, cb) {
+        //if (cond) return this.then(cb);  
+        return this.then(r => {
+            if (cond) return cb(r);
+            else return r;
+        });
+    }
+}
 
 // TODO: Implement DI-based messaging service?
 

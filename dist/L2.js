@@ -1,4 +1,15 @@
 //import { jsDAL } from "./L2.DAL";
+if (typeof (Promise.prototype.ifthen) == "undefined") {
+    Promise.prototype.ifthen = function (cond, cb) {
+        //if (cond) return this.then(cb);  
+        return this.then(function (r) {
+            if (cond)
+                return cb(r);
+            else
+                return r;
+        });
+    };
+}
 // TODO: There is now a lot of overlap between L2 and L2.DAL. Make L2.DAL call L2 where overlap occurs? 
 var ApiResponseEndThenChain = (function () {
     function ApiResponseEndThenChain() {

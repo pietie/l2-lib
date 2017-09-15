@@ -30,15 +30,17 @@ export var jsDAL;
         }
         return ApiResponseEndThenChain;
     }());
-    Promise.prototype.ifthen = function (cond, cb) {
-        //if (cond) return this.then(cb);  
-        return this.then(function (r) {
-            if (cond)
-                return cb(r);
-            else
-                return r;
-        });
-    };
+    if (typeof (Promise.prototype.ifthen) == "undefined") {
+        Promise.prototype.ifthen = function (cond, cb) {
+            //if (cond) return this.then(cb);  
+            return this.then(function (r) {
+                if (cond)
+                    return cb(r);
+                else
+                    return r;
+            });
+        };
+    }
     function ExecGlobal(execFunction, httpMethod, dbSource, schema, routine, mappedParams, options, alwaysCBs) {
         return new Promise(function (resolve, reject) {
             // create query string based on routine parameters
