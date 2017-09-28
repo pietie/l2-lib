@@ -72,8 +72,12 @@ export module jsDAL {
                     parmValue = parmValue.toISOString();
                 }
 
-                if (parmValue != null) return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
-                else return encodeURIComponent(p) + "=";
+                if (parmValue != null) {
+                    return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
+                }
+                else {
+                    return encodeURIComponent(p) + "=$jsDAL$.DBNull";
+                }
             });
 
             let tokenGuid: string = null;
