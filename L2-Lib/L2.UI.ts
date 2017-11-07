@@ -290,7 +290,7 @@ export class UI {
                         for (var i = 0; i < settings.attr.length; i++) {
                             var aName = settings.attr[i];
 
-                            if (row[aName]) $op.data(aName, row[aName]);
+                            if (row[aName] !== undefined) $op.data(aName, row[aName]);
                         }
                     }
                 }

@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 // TODO: Can we get rid of this __extends?
 var __extends = (this && this.__extends) || function (d, b) { for (var p in b)
     if (b.hasOwnProperty(p))
@@ -113,7 +115,6 @@ var UI = (function () {
     };
     return UI;
 }());
-export { UI };
 UI.A = function (options) {
     try {
         var settings = {
@@ -260,5 +261,6 @@ UI.NewGrid = function (options) {
         throw ex;
     }
 };
+exports.UI = UI;
 //export default UI; 
 //# sourceMappingURL=L2.UI.js.map

@@ -656,7 +656,7 @@ export module jsDAL {
 
     export class ServerVariables {
         private static PREFIX_MARKER: string = "$jsDAL$";
-        static get ClientIP(): string {
+        static /*get*/ ClientIP(): string {
             return `${ServerVariables.PREFIX_MARKER}.RemoteClient.IP`;
         }
     }

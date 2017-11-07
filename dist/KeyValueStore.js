@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 var KeyValueStore = (function () {
     function KeyValueStore() {
     }
@@ -9,13 +11,13 @@ var KeyValueStore = (function () {
             return new Promise(function (resolve, reject) {
                 dbPromise.then(function (db) {
                     if (value !== undefined) {
-                        KeyValueStore.setValue(db, keyName, value).then(function (r) { return resolve(r); }).catch(function (e) { return reject(e); });
+                        KeyValueStore.setValue(db, keyName, value).then(function (r) { return resolve(r); })["catch"](function (e) { return reject(e); });
                         ;
                     }
                     else {
-                        KeyValueStore.getValue(db, keyName).then(function (r) { return resolve(r); }).catch(function (e) { return reject(e); });
+                        KeyValueStore.getValue(db, keyName).then(function (r) { return resolve(r); })["catch"](function (e) { return reject(e); });
                     }
-                }).catch(function (e) { return reject(e); });
+                })["catch"](function (e) { return reject(e); });
             });
         };
     };
@@ -59,7 +61,7 @@ var KeyValueStore = (function () {
     };
     return KeyValueStore;
 }());
-export { KeyValueStore };
+exports.KeyValueStore = KeyValueStore;
 //export class KeyValueStoreKV {
 //    public key<T>(keyName: string, value?: T): T {
 //        return null;

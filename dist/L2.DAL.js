@@ -1,3 +1,4 @@
+"use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -8,8 +9,9 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-import { L2, jsDALServer } from "./L2";
-export var jsDAL;
+exports.__esModule = true;
+var L2_1 = require("./L2");
+var jsDAL;
 (function (jsDAL) {
     var ApiResponseType;
     (function (ApiResponseType) {
@@ -82,8 +84,8 @@ export var jsDAL;
                 parmQueryString = "?" + parmQueryString;
             else
                 parmQueryString = "";
-            if (jsDALServer.overridingDbSource)
-                dbSource = jsDALServer.overridingDbSource;
+            if (L2_1.jsDALServer.overridingDbSource)
+                dbSource = L2_1.jsDALServer.overridingDbSource;
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error("Invalid execution method specified: " + execFunction);
             }
@@ -101,7 +103,7 @@ export var jsDAL;
                 if (headers) {
                     init = { headers: headers };
                 }
-                fetchWrap(jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + jsDALServer.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
+                fetchWrap(L2_1.jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + L2_1.jsDALServer.dbConnection + "/" + schema + "/" + routine + parmQueryString, init, alwaysCBs)
                     .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -125,7 +127,7 @@ export var jsDAL;
                 for (var e in customHeaders) {
                     headers[e] = customHeaders[e];
                 }
-                fetchWrap(jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + jsDALServer.dbConnection + "/" + schema + "/" + routine, {
+                fetchWrap(L2_1.jsDALServer.serverUrl + "/api/" + execFunction + "/" + dbSource + "/" + L2_1.jsDALServer.dbConnection + "/" + schema + "/" + routine, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(bodyContent)
@@ -147,12 +149,12 @@ export var jsDAL;
     }
     function fetchWrap(url, init, alwaysCBs) {
         return new Promise(function (resolve, reject) {
-            if (jsDALServer.jwt != null) {
+            if (L2_1.jsDALServer.jwt != null) {
                 if (!init)
                     init = {};
                 if (!init.headers)
                     init.headers = {};
-                init.headers["Authorization"] = "Bearer " + jsDALServer.jwt.access_token;
+                init.headers["Authorization"] = "Bearer " + L2_1.jsDALServer.jwt.access_token;
             }
             // iOS prefers undefined over null
             if (init == null)
@@ -219,18 +221,18 @@ export var jsDAL;
             // look for a json result
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json().then(function (json) {
-                    L2.exclamation(json.Message, "Http status code " + response.status);
+                    L2_1.L2.exclamation(json.Message, "Http status code " + response.status);
                     if (options && options.HandleExceptions) {
-                        L2.handleException(new Error(JSON.stringify(json)));
+                        L2_1.L2.handleException(new Error(JSON.stringify(json)));
                     }
                     throw json;
                 });
             }
             else {
                 return response.text().then(function (text) {
-                    L2.exclamation(text, "Http status code 02 " + response.status);
+                    L2_1.L2.exclamation(text, "Http status code 02 " + response.status);
                     if (options && options.HandleExceptions) {
-                        L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
+                        L2_1.L2.handleException(new Error(text), { origin: "checkHttpStatus 02", fetch: fetchDetails_1 });
                     }
                     throw response;
                 });
@@ -260,7 +262,7 @@ export var jsDAL;
             if (ex.fetch)
                 fetchDetails = JSON.stringify(ex.fetch);
             if (options && options.HandleExceptions) {
-                L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+                L2_1.L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
             }
             var msg = ex;
             if (ex.Message)
@@ -277,13 +279,13 @@ export var jsDAL;
                 case ApiResponseType.Success:
                     return apiResponse;
                 case ApiResponseType.InfoMsg:
-                    L2.info(apiResponse.Message);
+                    L2_1.L2.info(apiResponse.Message);
                     break;
                 case ApiResponseType.ExclamationModal:
-                    L2.exclamation(apiResponse.Message, apiResponse.Title);
+                    L2_1.L2.exclamation(apiResponse.Message, apiResponse.Title);
                     throw new ApiResponseEndThenChain();
                 case ApiResponseType.Exception:
-                    L2.handleException(apiResponse);
+                    L2_1.L2.handleException(apiResponse);
                     throw new ApiResponseEndThenChain();
             }
             return apiResponse;
@@ -319,7 +321,7 @@ export var jsDAL;
                 CommandTimeoutInSeconds: 60
             };
             options = options || {};
-            settings = L2.extend(settings, options);
+            settings = L2_1.L2.extend(settings, options);
             return new Promise(function (resolve, reject) {
                 var batch = [];
                 for (var ix = 0; ix < _this.routineList.length; ix++) {
@@ -336,7 +338,7 @@ export var jsDAL;
                     }
                 }
                 var parmQueryString = optionsQueryStringArray.join("&");
-                fetchWrap(jsDALServer.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
+                fetchWrap(L2_1.jsDALServer.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
                     .then(function (r) { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -404,7 +406,7 @@ export var jsDAL;
         Sproc.prototype.getExecPacket = function () {
             return {
                 dbSource: this.dbSource,
-                dbConnection: jsDALServer.dbConnection,
+                dbConnection: L2_1.jsDALServer.dbConnection,
                 schema: this.schema,
                 routine: this.routine,
                 params: this.constructorOptions,
@@ -434,8 +436,8 @@ export var jsDAL;
             var mappedParams = [];
             options = options || {};
             this.constructorOptions = this.constructorOptions || {};
-            options = L2.extend(options, this.constructorOptions);
-            settings = L2.extend(settings, options);
+            options = L2_1.L2.extend(options, this.constructorOptions);
+            settings = L2_1.L2.extend(settings, options);
             // TODO: can we just assume TypeScript's __extends exists?
             //?__extends(options, this.constructorOptions);
             //?__extends(settings, options);
@@ -455,15 +457,15 @@ export var jsDAL;
                 .then(function (r) { _this.lastExecutionTime = performance.now() - startTick; _this.isLoading = false; _this.deferred.resolve(r); return r; });
         };
         Sproc.prototype.ExecQuery = function (options) {
-            options = L2.extend({ HttpMethod: "GET" }, options); // default to GET for ExecQuery
+            options = L2_1.L2.extend({ HttpMethod: "GET" }, options); // default to GET for ExecQuery
             return this.ExecRoutine("exec", options);
         };
         Sproc.prototype.ExecNonQuery = function (options) {
-            options = L2.extend({ HttpMethod: "POST" }, options); // default to POST for ExecNonQuery
+            options = L2_1.L2.extend({ HttpMethod: "POST" }, options); // default to POST for ExecNonQuery
             return this.ExecRoutine("execnq", options);
         };
         Sproc.prototype.ExecSingleResult = function (options) {
-            options = L2.extend({ HttpMethod: "GET" }, options);
+            options = L2_1.L2.extend({ HttpMethod: "GET" }, options);
             return this.ExecRoutine("exec", options).then(function (r) {
                 if (r && typeof (r.Data) !== "undefined" && typeof (r.Data.Table0) !== "undefined") {
                     var r1 = null;
@@ -512,7 +514,7 @@ export var jsDAL;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         UDF.prototype.Exec = function (options) {
-            options = L2.extend({ HttpMethod: "GET" }, options);
+            options = L2_1.L2.extend({ HttpMethod: "GET" }, options);
             return _super.prototype.ExecRoutine.call(this, "execScalar", options).then(function (r) {
                 // return the single result value
                 if (r.IsDate)
@@ -526,17 +528,13 @@ export var jsDAL;
     var ServerVariables = (function () {
         function ServerVariables() {
         }
-        Object.defineProperty(ServerVariables, "ClientIP", {
-            get: function () {
-                return ServerVariables.PREFIX_MARKER + ".RemoteClient.IP";
-            },
-            enumerable: true,
-            configurable: true
-        });
+        ServerVariables.ClientIP = function () {
+            return ServerVariables.PREFIX_MARKER + ".RemoteClient.IP";
+        };
         return ServerVariables;
     }());
     ServerVariables.PREFIX_MARKER = "$jsDAL$";
     jsDAL.ServerVariables = ServerVariables;
-})(jsDAL || (jsDAL = {}));
+})(jsDAL = exports.jsDAL || (exports.jsDAL = {}));
 //export default jsDAL;
 //# sourceMappingURL=L2.DAL.js.map

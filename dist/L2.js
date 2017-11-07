@@ -1,4 +1,6 @@
+"use strict";
 //import { jsDAL } from "./L2.DAL";
+exports.__esModule = true;
 if (typeof (Promise.prototype.ifthen) == "undefined") {
     Promise.prototype.ifthen = function (cond, cb) {
         //if (cond) return this.then(cb);  
@@ -16,7 +18,7 @@ var ApiResponseEndThenChain = (function () {
     }
     return ApiResponseEndThenChain;
 }());
-export { ApiResponseEndThenChain };
+exports.ApiResponseEndThenChain = ApiResponseEndThenChain;
 var ApiResponseType;
 (function (ApiResponseType) {
     ApiResponseType[ApiResponseType["Unknown"] = 0] = "Unknown";
@@ -72,7 +74,6 @@ var BrowserStore = (function () {
     };
     return BrowserStore;
 }());
-export { BrowserStore };
 //    private static removeItemVal = {};
 BrowserStore.removeSessionItem = function (key) {
     window.sessionStorage.removeItem(key);
@@ -80,6 +81,7 @@ BrowserStore.removeSessionItem = function (key) {
 BrowserStore.removeLocalItem = function (key) {
     window.localStorage.removeItem(key);
 };
+exports.BrowserStore = BrowserStore;
 var StorageObject = (function () {
     function StorageObject(val) {
         this.isValueAndObject = (typeof val === "object");
@@ -195,7 +197,7 @@ var L2 = (function () {
             })
                 .then(function (r) {
                 resolve(r);
-            }).catch(function (e) { return resolve(null); });
+            })["catch"](function (e) { return resolve(null); });
         });
     };
     L2.processApiResponse = function (json) {
@@ -229,8 +231,7 @@ var L2 = (function () {
         return L2.fetchWrap(url, init)
             .then(L2.checkHttpStatus)
             .then(L2.parseJSON)
-            .ifthen(true, L2.processApiResponse)
-            .catch(L2.fetchCatch);
+            .ifthen(true, L2.processApiResponse)["catch"](L2.fetchCatch);
     };
     L2.postJson = function (url, init) {
         var defaults = {
@@ -244,8 +245,7 @@ var L2 = (function () {
         return L2.fetchWrap(url, settings)
             .then(L2.checkHttpStatus)
             .then(L2.parseJSON)
-            .ifthen(true, L2.processApiResponse)
-            .catch(L2.fetchCatch);
+            .ifthen(true, L2.processApiResponse)["catch"](L2.fetchCatch);
     };
     L2.putJson = function (url, init) {
         var defaults = {
@@ -259,8 +259,7 @@ var L2 = (function () {
         return L2.fetchWrap(url, settings)
             .then(L2.checkHttpStatus)
             .then(L2.parseJSON)
-            .then(L2.processApiResponse)
-            .catch(L2.fetchCatch);
+            .then(L2.processApiResponse)["catch"](L2.fetchCatch);
     };
     L2.deleteJson = function (url, init) {
         var defaults = {
@@ -274,8 +273,7 @@ var L2 = (function () {
         return L2.fetchWrap(url, settings)
             .then(L2.checkHttpStatus)
             .then(L2.parseJSON)
-            .then(L2.processApiResponse)
-            .catch(L2.fetchCatch);
+            .then(L2.processApiResponse)["catch"](L2.fetchCatch);
     };
     L2.fetchWrap = function (url, init) {
         return new Promise(function (resolve, reject) {
@@ -336,7 +334,7 @@ var L2 = (function () {
     };
     return L2;
 }());
-export { L2 };
+exports.L2 = L2;
 var jsDALServer = (function () {
     function jsDALServer() {
     }
@@ -350,7 +348,7 @@ var jsDALServer = (function () {
     };
     return jsDALServer;
 }());
-export { jsDALServer };
+exports.jsDALServer = jsDALServer;
 delete L2.BrowserStore;
 L2.BrowserStore = BrowserStore; // don't know the correct TS way
 //# sourceMappingURL=L2.js.map

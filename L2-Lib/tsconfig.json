@@ -7,11 +7,11 @@
     "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "../dist",
     "sourceMap": true,
-    "target": "es5",
+    "target": "es3",
     "inlineSources": true,
     "skipLibCheck": true,
     "lib": [ "es2015",  "es5", "dom" ]

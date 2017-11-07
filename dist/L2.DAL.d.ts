@@ -62,6 +62,6 @@ export declare module jsDAL {
     }
     class ServerVariables {
         private static PREFIX_MARKER;
-        static readonly ClientIP: string;
+        static ClientIP(): string;
     }
 }
