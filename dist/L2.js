@@ -287,7 +287,8 @@ var L2 = (function () {
                     init = {};
                 if (!init.headers)
                     init.headers = {};
-                init.headers["x-access-token"] = jwt.token;
+                init.headers["x-access-token"] = jwt.token; // can eventually be removed if we only run on the jsdal-core version
+                init.headers["Authorization"] = "Bearer " + jwt.token;
             }
             if (!init)
                 init = {};
@@ -310,6 +311,7 @@ var L2 = (function () {
         }
         // TODO: Improve error here - look for specific type of failures (eg. network related)
         //MsgDialog.exclamation(L2.dialog, "fetch failed", ex.toString());
+        // 02/11/2017, PL: I think this needs to be a THROW otherwise we end up going to the next then instead of the next catch handler
         return ex;
     };
     L2.checkHttpStatus = function (response) {

@@ -64,7 +64,7 @@ var UI = (function () {
                     if (settings.attr && settings.attr.length > 0) {
                         for (var i = 0; i < settings.attr.length; i++) {
                             var aName = settings.attr[i];
-                            if (row[aName])
+                            if (row[aName] !== undefined)
                                 $op.data(aName, row[aName]);
                         }
                     }
