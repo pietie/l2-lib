@@ -465,6 +465,7 @@ export class jsDALServer {
     public static serverUrl: string;
     public static dbConnection: string;
     public static overridingDbSource: string;
+    public static applicationTitle: string;
     public static jwt: JWT;
 
     static configure(options: IDALServerOptions) {
@@ -475,6 +476,7 @@ export class jsDALServer {
         jsDALServer.dbConnection = options.dbConnection;
         jsDALServer.jwt = options.jwt;
         jsDALServer.overridingDbSource = options.overridingDbSource;
+        jsDALServer.applicationTitle = options.applicationTitle;
     }
 }
 
@@ -483,6 +485,7 @@ export interface IDALServerOptions {
     dbConnection?: string;
     overridingDbSource?: string;
     jwt?: JWT;
+    applicationTitle?: string;
 }
 
 delete L2.BrowserStore;

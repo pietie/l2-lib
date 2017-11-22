@@ -58,6 +58,7 @@ export declare class jsDALServer {
     static serverUrl: string;
     static dbConnection: string;
     static overridingDbSource: string;
+    static applicationTitle: string;
     static jwt: JWT;
     static configure(options: IDALServerOptions): void;
 }
@@ -66,4 +67,5 @@ export interface IDALServerOptions {
     dbConnection?: string;
     overridingDbSource?: string;
     jwt?: JWT;
+    applicationTitle?: string;
 }

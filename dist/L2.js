@@ -347,6 +347,7 @@ var jsDALServer = (function () {
         jsDALServer.dbConnection = options.dbConnection;
         jsDALServer.jwt = options.jwt;
         jsDALServer.overridingDbSource = options.overridingDbSource;
+        jsDALServer.applicationTitle = options.applicationTitle;
     };
     return jsDALServer;
 }());

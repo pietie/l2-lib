@@ -80,6 +80,7 @@ export module jsDAL {
                 }
             });
 
+
             let tokenGuid: string = null;
             let customHeaders: { [key: string]: string } = {};
 
@@ -106,6 +107,11 @@ export module jsDAL {
             else parmQueryString = "";
 
             if (jsDALServer.overridingDbSource) dbSource = jsDALServer.overridingDbSource;
+
+            if (jsDALServer.applicationTitle) {
+                //parmQueryStringArray.push("$at=" + encodeURIComponent(jsDALServer.applicationTitle));
+                customHeaders["App-Title"] = jsDALServer.applicationTitle;
+            }
 
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error(`Invalid execution method specified: ${execFunction}`);

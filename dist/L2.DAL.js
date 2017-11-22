@@ -86,6 +86,10 @@ var jsDAL;
                 parmQueryString = "";
             if (L2_1.jsDALServer.overridingDbSource)
                 dbSource = L2_1.jsDALServer.overridingDbSource;
+            if (L2_1.jsDALServer.applicationTitle) {
+                //parmQueryStringArray.push("$at=" + encodeURIComponent(jsDALServer.applicationTitle));
+                customHeaders["AppTitle"] = L2_1.jsDALServer.applicationTitle;
+            }
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error("Invalid execution method specified: " + execFunction);
             }
