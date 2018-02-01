@@ -43,6 +43,29 @@ var jsDAL;
             });
         };
     }
+    function ConvertDateToISOWithTimeOffset(dt) {
+        var timezone_offset_min = dt.getTimezoneOffset(), offset_hrs = parseInt(Math.abs(timezone_offset_min / 60)), offset_min = Math.abs(timezone_offset_min % 60), timezone_standard;
+        if (offset_hrs < 10)
+            offset_hrs = '0' + offset_hrs;
+        if (offset_min < 10)
+            offset_min = '0' + offset_min;
+        // Add an opposite sign to the offset
+        // If offset is 0, it means timezone is UTC
+        if (timezone_offset_min < 0)
+            timezone_standard = '+' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min > 0)
+            timezone_standard = '-' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min == 0)
+            timezone_standard = 'Z';
+        var current_date = dt.getDate(), current_month = dt.getMonth() + 1, current_year = dt.getFullYear(), current_hrs = dt.getHours(), current_mins = dt.getMinutes(), current_secs = dt.getSeconds(), current_datetime;
+        // Add 0 before date, month, hrs, mins or secs if they are less than 0
+        current_date = current_date < 10 ? '0' + current_date : current_date;
+        current_month = current_month < 10 ? '0' + current_month : current_month;
+        current_hrs = current_hrs < 10 ? '0' + current_hrs : current_hrs;
+        current_mins = current_mins < 10 ? '0' + current_mins : current_mins;
+        current_secs = current_secs < 10 ? '0' + current_secs : current_secs;
+        return current_year + '-' + current_month + '-' + current_date + 'T' + current_hrs + ':' + current_mins + ':' + current_secs + timezone_standard;
+    }
     function ExecGlobal(execFunction, httpMethod, dbSource, schema, routine, mappedParams, options, alwaysCBs) {
         return new Promise(function (resolve, reject) {
             // create query string based on routine parameters
@@ -50,10 +73,11 @@ var jsDAL;
                 var parmValue = options[p];
                 // serialize Date/moment objects to ISO string format
                 if (typeof (moment) != "undefined" && moment.isMoment(parmValue)) {
-                    parmValue = parmValue.toDate().toISOString();
+                    parmValue = ConvertDateToISOWithTimeOffset(parmValue.toDate()); //parmValue.toDate().toISOString();
                 }
                 else if (parmValue instanceof Date) {
-                    parmValue = parmValue.toISOString();
+                    //parmValue = parmValue.toISOString();
+                    parmValue = ConvertDateToISOWithTimeOffset(parmValue);
                 }
                 if (parmValue != null) {
                     return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue);
@@ -88,7 +112,7 @@ var jsDAL;
                 dbSource = L2_1.jsDALServer.overridingDbSource;
             if (L2_1.jsDALServer.applicationTitle) {
                 //parmQueryStringArray.push("$at=" + encodeURIComponent(jsDALServer.applicationTitle));
-                customHeaders["AppTitle"] = L2_1.jsDALServer.applicationTitle;
+                customHeaders["App-Title"] = L2_1.jsDALServer.applicationTitle;
             }
             if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
                 throw new Error("Invalid execution method specified: " + execFunction);

@@ -10,7 +10,7 @@ interface Error {
 
 export module jsDAL {
 
-  
+
 
     enum ApiResponseType {
         Unknown = 0,
@@ -51,6 +51,40 @@ export module jsDAL {
         HttpMethod?: string;
     }
 
+    function ConvertDateToISOWithTimeOffset(dt: Date): string { // http://usefulangle.com/post/30/javascript-get-date-time-with-offset-hours-minutes
+        let timezone_offset_min: number = dt.getTimezoneOffset(),
+            offset_hrs: any = parseInt(<any>Math.abs(timezone_offset_min / 60)),
+            offset_min: any = Math.abs(timezone_offset_min % 60),
+            timezone_standard;
+
+        if (offset_hrs < 10) offset_hrs = '0' + offset_hrs;
+
+        if (offset_min < 10) offset_min = '0' + offset_min;
+
+        // Add an opposite sign to the offset
+        // If offset is 0, it means timezone is UTC
+        if (timezone_offset_min < 0) timezone_standard = '+' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min > 0) timezone_standard = '-' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min == 0) timezone_standard = 'Z';
+
+        let current_date:any = dt.getDate(),
+            current_month: any = dt.getMonth() + 1,
+            current_year: any = dt.getFullYear(),
+            current_hrs: any = dt.getHours(),
+            current_mins: any = dt.getMinutes(),
+            current_secs: any = dt.getSeconds(),
+            current_datetime;
+
+        // Add 0 before date, month, hrs, mins or secs if they are less than 0
+        current_date = current_date < 10 ? '0' + current_date : current_date;
+        current_month = current_month < 10 ? '0' + current_month : current_month;
+        current_hrs = current_hrs < 10 ? '0' + current_hrs : current_hrs;
+        current_mins = current_mins < 10 ? '0' + current_mins : current_mins;
+        current_secs = current_secs < 10 ? '0' + current_secs : current_secs;
+                
+        return current_year + '-' + current_month + '-' + current_date + 'T' + current_hrs + ':' + current_mins + ':' + current_secs + timezone_standard;
+    }
+
 
     function ExecGlobal(execFunction: string, httpMethod, dbSource: string, schema: string, routine: string
         , mappedParams: any[]
@@ -66,10 +100,11 @@ export module jsDAL {
 
                 // serialize Date/moment objects to ISO string format
                 if (typeof (moment) != "undefined" && moment.isMoment(parmValue)) {
-                    parmValue = parmValue.toDate().toISOString();
+                    parmValue = ConvertDateToISOWithTimeOffset(parmValue.toDate()); //parmValue.toDate().toISOString();
                 }
                 else if (parmValue instanceof Date) {
-                    parmValue = parmValue.toISOString();
+                    //parmValue = parmValue.toISOString();
+                    parmValue = ConvertDateToISOWithTimeOffset(parmValue);
                 }
 
                 if (parmValue != null) {
