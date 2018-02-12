@@ -505,7 +505,7 @@ export module jsDAL {
             settings = L2.extend(settings, options);
 
             let startTick = performance.now();
-            //?this.isLoading = true;
+            this.isLoading = true;
 
             // TODO: Do we really need a new promise..just package all the inputs and wait for the single output? 
             return new Promise((resolve, reject) => {
@@ -516,22 +516,10 @@ export module jsDAL {
                     batch.push({ Ix: ix, Routine: this.routineList[ix].getExecPacket() });
                 }
 
-
                 var mappedParams: any[] = [];
-
-
-                //if (settings) {
-                //    if (settings.AutoSetTokenGuid) {
-                //        var tg = window["TokenGuid"];
-
-                //        if (tg) mappedParams["tokenGuid"] = tg;
-                //    }
-                //}
 
                 settings["batch-data"] = batch;
                 mappedParams.push("batch-data");
-                
-
 
                 return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
                     .then(r => {
@@ -554,33 +542,6 @@ export module jsDAL {
 
                         return r;
                     });
-
-                //fetchWrap(`${jsDALServer.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
-                /** fetchWrap(`${jsDALServer.serverUrl}/api/batch${JSON.stringify(batch)}&options=${parmQueryString}`)
-                    .then(r => { return checkHttpStatus(r, options); })
-                    .then(parseJSON)
-                    .then(transformResults)
-                    .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(r => {
-                        //console.dir(r);
-                        for (var ix = 0; ix < this.routineList.length; ix++) {
-                            var routine = this.routineList[ix];
-
-                            var transformed = transformResults(r.Data[ix]);
-
-                            try {
-                                //if (options.AutoProcessApiResponse)
-                                processApiResponse(transformed);
-                            }
-                            catch (ex) { /*ignore exceptions* / }
-
-                            routine.deferred.resolve(transformed);
-                        }
-
-                    })
-                    .then(r => resolve(r))
-                ["catch"](r => { fetchCatch(r, options); reject(r) })
-                    ;*/
 
             });
         }
