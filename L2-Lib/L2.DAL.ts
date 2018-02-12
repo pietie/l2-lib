@@ -507,43 +507,40 @@ export module jsDAL {
             let startTick = performance.now();
             this.isLoading = true;
 
-            // TODO: Do we really need a new promise..just package all the inputs and wait for the single output? 
-            return new Promise((resolve, reject) => {
 
-                let batch = [];
+            let batch = [];
 
-                for (var ix = 0; ix < this.routineList.length; ix++) {
-                    batch.push({ Ix: ix, Routine: this.routineList[ix].getExecPacket() });
-                }
+            for (var ix = 0; ix < this.routineList.length; ix++) {
+                batch.push({ Ix: ix, Routine: this.routineList[ix].getExecPacket() });
+            }
 
-                var mappedParams: any[] = [];
+            var mappedParams: any[] = [];
 
-                settings["batch-data"] = batch;
-                mappedParams.push("batch-data");
+            settings["batch-data"] = batch;
+            mappedParams.push("batch-data");
 
-                return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
-                    .then(r => {
-                        this.lastExecutionTime = performance.now() - startTick;
-                        this.isLoading = false;
+            return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
+                .then(r => {
+                    this.lastExecutionTime = performance.now() - startTick;
+                    this.isLoading = false;
 
-                        for (let ix = 0; ix < this.routineList.length; ix++) {
-                            var routine = this.routineList[ix];
+                    for (let ix = 0; ix < this.routineList.length; ix++) {
+                        var routine = this.routineList[ix];
 
-                            var transformed = transformResults(r.Data[ix]);
+                        var transformed = transformResults(r.Data[ix]);
 
-                            try {
-                                //if (options.AutoProcessApiResponse)
-                                processApiResponse(transformed);
-                            }
-                            catch (ex) { /*ignore exceptions*/ }
-
-                            routine.deferred.resolve(transformed);
+                        try {
+                            //if (options.AutoProcessApiResponse)
+                            processApiResponse(transformed);
                         }
+                        catch (ex) { /*ignore exceptions*/ }
 
-                        return r;
-                    });
+                        routine.deferred.resolve(transformed);
+                    }
 
-            });
+                    return r;
+                });
+
         }
 
 
