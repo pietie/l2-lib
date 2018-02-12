@@ -12,9 +12,12 @@ export declare module jsDAL {
     function transformResults(r: any): any;
     class Batch {
         private routineList;
+        lastExecutionTime: number;
+        isLoading: boolean;
+        private _alwaysCallbacks;
         constructor(...routines: Sproc[]);
-        ExecQuery(options?: IExecDefaults & IExecDefaults): Promise<any>;
-        ExecNonQuery(options?: any): Promise<any>;
+        always(cb: (...any) => any): Batch;
+        Exec(options?: IExecDefaults & IExecDefaults): Promise<any>;
     }
     class Deferred {
         promise: Promise<any>;

@@ -67,7 +67,7 @@ export module jsDAL {
         else if (timezone_offset_min > 0) timezone_standard = '-' + offset_hrs + ':' + offset_min;
         else if (timezone_offset_min == 0) timezone_standard = 'Z';
 
-        let current_date:any = dt.getDate(),
+        let current_date: any = dt.getDate(),
             current_month: any = dt.getMonth() + 1,
             current_year: any = dt.getFullYear(),
             current_hrs: any = dt.getHours(),
@@ -81,7 +81,7 @@ export module jsDAL {
         current_hrs = current_hrs < 10 ? '0' + current_hrs : current_hrs;
         current_mins = current_mins < 10 ? '0' + current_mins : current_mins;
         current_secs = current_secs < 10 ? '0' + current_secs : current_secs;
-                
+
         return current_year + '-' + current_month + '-' + current_date + 'T' + current_hrs + ':' + current_mins + ':' + current_secs + timezone_standard;
     }
 
@@ -148,7 +148,7 @@ export module jsDAL {
                 customHeaders["App-Title"] = jsDALServer.applicationTitle;
             }
 
-            if (["exec", "execnq", "execScalar"].indexOf(execFunction) == -1) {
+            if (["exec", "execnq", "execScalar", "batch"].indexOf(execFunction) == -1) {
                 throw new Error(`Invalid execution method specified: ${execFunction}`);
             }
 
@@ -198,7 +198,15 @@ export module jsDAL {
                     headers[e] = customHeaders[e];
                 }
 
-                fetchWrap(`${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}`
+                let postUrl: string = null;
+
+                if (execFunction == "batch") {
+                    postUrl = `${jsDALServer.serverUrl}/api/${execFunction}/${jsDALServer.dbConnection}`;
+                }
+                else {
+                    postUrl = `${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}`;
+                }
+                fetchWrap(postUrl
                     , {
                         method: 'POST',
                         headers: headers,
@@ -415,6 +423,12 @@ export module jsDAL {
 
         private routineList: Sproc[];
 
+        public lastExecutionTime: number;
+        public isLoading: boolean = false;
+
+        private _alwaysCallbacks: ((res: any) => any)[];
+
+
         constructor(...routines: Sproc[]) {
             if (routines.length == 0) {
                 throw "You have to specify at least one routine to execute.";
@@ -429,7 +443,54 @@ export module jsDAL {
             this.routineList = routines;
         }
 
-        public ExecQuery(options?: IExecDefaults & IExecDefaults): Promise<any> {
+        public always(cb: (...any) => any): Batch {
+            if (!this._alwaysCallbacks) this._alwaysCallbacks = [];
+
+            this._alwaysCallbacks.push(cb);
+
+            return this;
+        }
+
+        /*
+            Sproc:
+
+
+        protected ExecRoutine(execFunction: string, options?: IExecDefaults): Promise<any> {
+
+            if (!execFunction || execFunction == "")
+                throw new Error(`'execFunction' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`);
+
+            // default settings
+            let settings: IExecDefaults = Sproc._exeDefaults;
+
+            var mappedParams: any[] = [];
+
+            options = options || {};
+            this.constructorOptions = this.constructorOptions || {};
+
+
+            options = L2.extend(options, this.constructorOptions);
+            settings = L2.extend(settings, options);
+
+            // look for parameters passed in that match the expected routine parameters
+            if (options && this.routineParams) {
+                mappedParams = this.routineParams.filter(parmName => {
+                    return options[parmName] !== undefined;
+                });
+            }
+
+            if (this.selectFieldsCsv) settings.$select = this.selectFieldsCsv;
+            if (this.captchaVal) settings.$captcha = this.captchaVal;
+
+            let startTick = performance.now();
+            this.isLoading = true;
+
+            return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+                .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
+        }
+        */
+
+        public Exec(options?: IExecDefaults & IExecDefaults): Promise<any> {
             // default settings
             let settings: IExecDefaults = {
                 AutoSetTokenGuid: true,
@@ -443,30 +504,59 @@ export module jsDAL {
 
             settings = L2.extend(settings, options);
 
+            let startTick = performance.now();
+            //?this.isLoading = true;
+
+            // TODO: Do we really need a new promise..just package all the inputs and wait for the single output? 
             return new Promise((resolve, reject) => {
 
-                var batch = [];
+                let batch = [];
 
                 for (var ix = 0; ix < this.routineList.length; ix++) {
-                    var r = this.routineList[ix];
-
-                    batch.push({ Ix: ix, Routine: r.getExecPacket() });
+                    batch.push({ Ix: ix, Routine: this.routineList[ix].getExecPacket() });
                 }
 
-                // create query string based on routine parameters
-                var optionsQueryStringArray: any[] = [];
 
-                if (settings) {
-                    if (settings.AutoSetTokenGuid) {
-                        var tg = window["TokenGuid"];
+                var mappedParams: any[] = [];
 
-                        if (tg) optionsQueryStringArray.push("tokenGuid=" + tg);
-                    }
-                }
 
-                var parmQueryString = optionsQueryStringArray.join("&");
+                //if (settings) {
+                //    if (settings.AutoSetTokenGuid) {
+                //        var tg = window["TokenGuid"];
 
-                fetchWrap(`${jsDALServer.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
+                //        if (tg) mappedParams["tokenGuid"] = tg;
+                //    }
+                //}
+
+                settings["batch-data"] = batch;
+                mappedParams.push("batch-data");
+                
+
+
+                return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
+                    .then(r => {
+                        this.lastExecutionTime = performance.now() - startTick;
+                        this.isLoading = false;
+
+                        for (let ix = 0; ix < this.routineList.length; ix++) {
+                            var routine = this.routineList[ix];
+
+                            var transformed = transformResults(r.Data[ix]);
+
+                            try {
+                                //if (options.AutoProcessApiResponse)
+                                processApiResponse(transformed);
+                            }
+                            catch (ex) { /*ignore exceptions*/ }
+
+                            routine.deferred.resolve(transformed);
+                        }
+
+                        return r;
+                    });
+
+                //fetchWrap(`${jsDALServer.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
+                /** fetchWrap(`${jsDALServer.serverUrl}/api/batch${JSON.stringify(batch)}&options=${parmQueryString}`)
                     .then(r => { return checkHttpStatus(r, options); })
                     .then(parseJSON)
                     .then(transformResults)
@@ -482,7 +572,7 @@ export module jsDAL {
                                 //if (options.AutoProcessApiResponse)
                                 processApiResponse(transformed);
                             }
-                            catch (ex) { /*ignore exceptions*/ }
+                            catch (ex) { /*ignore exceptions* / }
 
                             routine.deferred.resolve(transformed);
                         }
@@ -490,14 +580,12 @@ export module jsDAL {
                     })
                     .then(r => resolve(r))
                 ["catch"](r => { fetchCatch(r, options); reject(r) })
-                    ;
+                    ;*/
 
             });
         }
 
-        public ExecNonQuery(options?: any): Promise<any> {
-            return null;
-        }
+
     }
 
     export class Deferred {

@@ -328,6 +328,7 @@ var jsDAL;
             for (var _i = 0; _i < arguments.length; _i++) {
                 routines[_i] = arguments[_i];
             }
+            this.isLoading = false;
             if (routines.length == 0) {
                 throw "You have to specify at least one routine to execute.";
             }
@@ -338,7 +339,52 @@ var jsDAL;
             }
             this.routineList = routines;
         }
-        Batch.prototype.ExecQuery = function (options) {
+        Batch.prototype.always = function (cb) {
+            if (!this._alwaysCallbacks)
+                this._alwaysCallbacks = [];
+            this._alwaysCallbacks.push(cb);
+            return this;
+        };
+        /*
+            Sproc:
+
+
+        protected ExecRoutine(execFunction: string, options?: IExecDefaults): Promise<any> {
+
+            if (!execFunction || execFunction == "")
+                throw new Error(`'execFunction' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`);
+
+            // default settings
+            let settings: IExecDefaults = Sproc._exeDefaults;
+
+            var mappedParams: any[] = [];
+
+            options = options || {};
+            this.constructorOptions = this.constructorOptions || {};
+
+
+            options = L2.extend(options, this.constructorOptions);
+            settings = L2.extend(settings, options);
+
+            // look for parameters passed in that match the expected routine parameters
+            if (options && this.routineParams) {
+                mappedParams = this.routineParams.filter(parmName => {
+                    return options[parmName] !== undefined;
+                });
+            }
+
+            if (this.selectFieldsCsv) settings.$select = this.selectFieldsCsv;
+            if (this.captchaVal) settings.$captcha = this.captchaVal;
+
+            let startTick = performance.now();
+            this.isLoading = true;
+
+            return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+                .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
+        }
+        */
+        // TODO: should just be call Exec ... and can be POST only? 
+        Batch.prototype.Exec = function (options) {
             var _this = this;
             // default settings
             var settings = {
@@ -350,32 +396,31 @@ var jsDAL;
             };
             options = options || {};
             settings = L2_1.L2.extend(settings, options);
+            var startTick = performance.now();
+            //?this.isLoading = true;
+            // TODO: Do we really need a new promise..just package all the inputs and wait for the single output? 
             return new Promise(function (resolve, reject) {
                 var batch = [];
                 for (var ix = 0; ix < _this.routineList.length; ix++) {
-                    var r = _this.routineList[ix];
-                    batch.push({ Ix: ix, Routine: r.getExecPacket() });
+                    batch.push({ Ix: ix, Routine: _this.routineList[ix].getExecPacket() });
                 }
-                // create query string based on routine parameters
-                var optionsQueryStringArray = [];
+                var mappedParams = [];
                 if (settings) {
                     if (settings.AutoSetTokenGuid) {
                         var tg = window["TokenGuid"];
                         if (tg)
-                            optionsQueryStringArray.push("tokenGuid=" + tg);
+                            mappedParams["tokenGuid"] = tg;
                     }
                 }
-                var parmQueryString = optionsQueryStringArray.join("&");
-                fetchWrap(L2_1.jsDALServer.serverUrl + "/api/execBatch?batch=" + JSON.stringify(batch) + "&options=" + parmQueryString)
-                    .then(function (r) { return checkHttpStatus(r, options); })
-                    .then(parseJSON)
-                    .then(transformResults)
-                    .ifthen(options.AutoProcessApiResponse, processApiResponse)
+                mappedParams["batch-data"] = batch;
+                console.log("!! mappedParams", mappedParams);
+                return ExecGlobal("batch", "POST" /*settings.HttpMethod*/, "batch", "batch", "batch", mappedParams, settings, _this._alwaysCallbacks)
                     .then(function (r) {
-                    //console.dir(r);
-                    for (var ix = 0; ix < _this.routineList.length; ix++) {
-                        var routine = _this.routineList[ix];
-                        var transformed = transformResults(r.Data[ix]);
+                    _this.lastExecutionTime = performance.now() - startTick;
+                    _this.isLoading = false;
+                    for (var ix_1 = 0; ix_1 < _this.routineList.length; ix_1++) {
+                        var routine = _this.routineList[ix_1];
+                        var transformed = transformResults(r.Data[ix_1]);
                         try {
                             //if (options.AutoProcessApiResponse)
                             processApiResponse(transformed);
@@ -383,12 +428,35 @@ var jsDAL;
                         catch (ex) { }
                         routine.deferred.resolve(transformed);
                     }
-                })
-                    .then(function (r) { return resolve(r); })["catch"](function (r) { fetchCatch(r, options); reject(r); });
+                    return r;
+                });
+                //fetchWrap(`${jsDALServer.serverUrl}/api/execBatch?batch=${JSON.stringify(batch)}&options=${parmQueryString}`)
+                /** fetchWrap(`${jsDALServer.serverUrl}/api/batch${JSON.stringify(batch)}&options=${parmQueryString}`)
+                    .then(r => { return checkHttpStatus(r, options); })
+                    .then(parseJSON)
+                    .then(transformResults)
+                    .ifthen(options.AutoProcessApiResponse, processApiResponse)
+                    .then(r => {
+                        //console.dir(r);
+                        for (var ix = 0; ix < this.routineList.length; ix++) {
+                            var routine = this.routineList[ix];
+
+                            var transformed = transformResults(r.Data[ix]);
+
+                            try {
+                                //if (options.AutoProcessApiResponse)
+                                processApiResponse(transformed);
+                            }
+                            catch (ex) { /*ignore exceptions* / }
+
+                            routine.deferred.resolve(transformed);
+                        }
+
+                    })
+                    .then(r => resolve(r))
+                ["catch"](r => { fetchCatch(r, options); reject(r) })
+                    ;*/
             });
-        };
-        Batch.prototype.ExecNonQuery = function (options) {
-            return null;
         };
         return Batch;
     }());
