@@ -132,7 +132,6 @@ export class UI {
                     if (settings.sproc) {
                         var data = settings.data.Data.Table0;
 
-                        //window.DAL.TransformResults(data);
                         settings.data = data;
                     }
 
@@ -227,7 +226,7 @@ export class UI {
 
     static NewCbo(options?: NewCboOptions) {
 
-        // intialise settings with defaults
+        // initialise settings with defaults
         let settings: NewCboOptions = {
             id: null,
             name: null,

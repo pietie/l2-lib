@@ -57,6 +57,7 @@ export interface JWT {
 export declare class jsDALServer {
     static serverUrl: string;
     static dbConnection: string;
+    static endpoint: string;
     static overridingDbSource: string;
     static applicationTitle: string;
     static jwt: JWT;
@@ -66,6 +67,7 @@ export interface IDALServerOptions {
     serverUrl?: string;
     dbConnection?: string;
     overridingDbSource?: string;
+    endpoint?: string;
     jwt?: JWT;
     applicationTitle?: string;
 }

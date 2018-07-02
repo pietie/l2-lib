@@ -7,9 +7,7 @@ interface Error {
 }
 
 
-
 export module jsDAL {
-
 
 
     enum ApiResponseType {
@@ -51,7 +49,197 @@ export module jsDAL {
         HttpMethod?: string;
     }
 
-    function ConvertDateToISOWithTimeOffset(dt: Date): string { // http://usefulangle.com/post/30/javascript-get-date-time-with-offset-hours-minutes
+    export function transformResults(r) {
+
+        if (typeof (r.Data) === "undefined") return r;
+
+        for (var e in r.Data) {
+
+            if (!(e.substring(0, 5) == "Table")) continue;
+
+            var dt = r.Data[e];
+
+            var transformed = [];
+
+            for (var rowIx = 0; rowIx < dt.Data.length; rowIx++) {
+
+                var newRowObject = {};
+
+                for (var colIx = 0; colIx < dt.Data[rowIx].length; colIx++) {
+                    // TODO: Add support for DateTime fields?
+                    newRowObject[dt.Fields[colIx].name] = dt.Data[rowIx][colIx];
+                }
+
+                transformed.push(newRowObject);
+            }
+
+            r.Data[e] = transformed;
+        }
+
+        return r;
+    }
+    
+    class Exec {
+        static ExecGlobal(exec: IExecGlobalOptions): Promise<any> {
+
+            return new Promise((resolve, reject) => {
+                // create query string based on routine parameters
+                var parmQueryStringArray: any[] = exec.mappedParams.map(p => {
+                    var parmValue = exec.options[p];
+
+                    // serialize Date/moment objects to ISO string format
+                    if (typeof (moment) != "undefined" && moment.isMoment(parmValue)) {
+                        parmValue = Exec.ConvertDateToISOWithTimeOffset(parmValue.toDate()); //parmValue.toDate().toISOString();
+                    }
+                    else if (parmValue instanceof Date) {
+                        //parmValue = parmValue.toISOString();
+                        parmValue = Exec.ConvertDateToISOWithTimeOffset(parmValue);
+                    }
+
+                    if (parmValue != null) {
+                        return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
+                    }
+                    else {
+                        return encodeURIComponent(p) + "=$jsDAL$.DBNull";
+                    }
+                });
+
+
+                let tokenGuid: string = null;
+                let customHeaders: { [key: string]: string } = {};
+
+                if (exec.options) {
+                    if (exec.options.AutoSetTokenGuid) {
+                        tokenGuid = window["TokenGuid"];
+
+                        // TODO: Consider moving this to the custom header array
+                        if (tokenGuid) parmQueryStringArray.push("tokenGuid=" + tokenGuid);
+                    }
+
+                    // TODO: Consider moving this to the custom header array
+                    if (exec.options.$select) parmQueryStringArray.push("$select=" + exec.options.$select);
+                    //if (options.$captcha) parmQueryStringArray.push("$captcha=" + options.$captcha);
+                    if (exec.options.$captcha) {
+                        customHeaders["captcha-val"] = exec.options.$captcha;
+                    }
+
+                }
+
+                var parmQueryString = parmQueryStringArray.join("&");
+
+                if (parmQueryString && parmQueryString.length > 0 && parmQueryString != "") parmQueryString = "?" + parmQueryString;
+                else parmQueryString = "";
+
+                if (jsDALServer.overridingDbSource) exec.dbSource = jsDALServer.overridingDbSource;
+
+                if (jsDALServer.applicationTitle) {
+                    customHeaders["App-Title"] = jsDALServer.applicationTitle;
+                }
+
+                if (["exec", "execnq", "execScalar", "batch"].indexOf(exec.execFunction) == -1) {
+                    throw new Error(`Invalid execution method specified: ${exec.execFunction}`);
+                }
+
+                // GET
+                if (exec.httpMethod == "GET") {
+                    let headers = null;
+
+                    if (customHeaders && Object.keys(customHeaders).length > 0) {
+                        if (headers == null) headers = {};
+                        for (let e in customHeaders) {
+                            headers[e] = customHeaders[e];
+                        }
+                    }
+
+                    let init = null;
+
+                    if (headers) {
+                        init = { headers: headers };
+                    }
+
+                    let getUrl: string = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${exec.dbSource}/${jsDALServer.dbConnection}/${exec.schema}/${exec.routine}${parmQueryString}`;
+
+                    // endpoint overrides everything else
+                    if (jsDALServer.endpoint) {
+                        getUrl = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${jsDALServer.endpoint}/${exec.schema}/${exec.routine}${parmQueryString}`;
+                    }
+
+
+                    Exec.fetchWrap(getUrl, init, exec.alwaysCBs)
+                        .then(r => { return Exec.checkHttpStatus(r, exec.options); })
+                        .then(Exec.parseJSON)
+                        .then(transformResults)
+                        .ifthen(exec.options.AutoProcessApiResponse, Exec.processApiResponse)
+                        .then(r => resolve(r))
+                    ["catch"](r => { reject(Exec.fetchCatch(r, exec.options)); return r; })
+                    ["catch"](function (e) {
+                        if (e instanceof ApiResponseEndThenChain) return;
+                        else throw e;
+                    })
+                        ;
+                }
+                else if (exec.httpMethod == "POST") {
+                    var bodyContent = {};
+
+                    exec.mappedParams.forEach(p => { bodyContent[p] = exec.options[p]; });
+
+                    if (tokenGuid) bodyContent["tokenGuid"] = tokenGuid;
+
+                    let headers = {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    };
+
+                    for (let e in customHeaders) {
+                        headers[e] = customHeaders[e];
+                    }
+
+                    let postUrl: string = null;
+
+                    if (exec.execFunction == "batch") {
+                        postUrl = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${jsDALServer.dbConnection}`;
+
+                        // endpoint overrides everything else
+                        if (jsDALServer.endpoint) {
+                            postUrl = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${jsDALServer.endpoint}`;
+                        }
+                    }
+                    else {
+                        postUrl = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${exec.dbSource}/${jsDALServer.dbConnection}/${exec.schema}/${exec.routine}`;
+
+                        // endpoint overrides everything else
+                        if (jsDALServer.endpoint) {
+                            postUrl = `${jsDALServer.serverUrl}/api/${exec.execFunction}/${jsDALServer.endpoint}/${exec.schema}/${exec.routine}`;
+                        }
+
+                    }
+                    
+                    Exec.fetchWrap(postUrl
+                        , {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(bodyContent)
+                        }, exec.alwaysCBs)
+                        .then(r => { return Exec.checkHttpStatus(r, exec.options); })
+                        .then(Exec.parseJSON)
+                        .then(transformResults)
+                        .ifthen(exec.options.AutoProcessApiResponse, Exec.processApiResponse)
+                        .then(r => resolve(r))
+                    ["catch"](r => { reject(Exec.fetchCatch(r, exec.options)); })
+                    ["catch"](function (e) {
+                        if (e instanceof ApiResponseEndThenChain) return;
+                        else throw e;
+                    })
+                        ;
+                }
+                else throw "Invalid HTTP method: " + exec.httpMethod;
+
+            });
+
+        } // ExecGlobal
+
+        
+    static ConvertDateToISOWithTimeOffset(dt: Date): string { // http://usefulangle.com/post/30/javascript-get-date-time-with-offset-hours-minutes
         let timezone_offset_min: number = dt.getTimezoneOffset(),
             offset_hrs: any = parseInt(<any>Math.abs(timezone_offset_min / 60)),
             offset_min: any = Math.abs(timezone_offset_min % 60),
@@ -86,150 +274,8 @@ export module jsDAL {
     }
 
 
-    function ExecGlobal(execFunction: string, httpMethod, dbSource: string, schema: string, routine: string
-        , mappedParams: any[]
-        , options: (IExecDefaults)
-        , alwaysCBs?: ((res: any) => any)[]
 
-    ): Promise<any> {
-
-        return new Promise((resolve, reject) => {
-            // create query string based on routine parameters
-            var parmQueryStringArray: any[] = mappedParams.map(p => {
-                var parmValue = options[p];
-
-                // serialize Date/moment objects to ISO string format
-                if (typeof (moment) != "undefined" && moment.isMoment(parmValue)) {
-                    parmValue = ConvertDateToISOWithTimeOffset(parmValue.toDate()); //parmValue.toDate().toISOString();
-                }
-                else if (parmValue instanceof Date) {
-                    //parmValue = parmValue.toISOString();
-                    parmValue = ConvertDateToISOWithTimeOffset(parmValue);
-                }
-
-                if (parmValue != null) {
-                    return encodeURIComponent(p) + "=" + encodeURIComponent(parmValue)
-                }
-                else {
-                    return encodeURIComponent(p) + "=$jsDAL$.DBNull";
-                }
-            });
-
-
-            let tokenGuid: string = null;
-            let customHeaders: { [key: string]: string } = {};
-
-            if (options) {
-                if (options.AutoSetTokenGuid) {
-                    tokenGuid = window["TokenGuid"];
-
-                    // TODO: Consider moving this to the custom header array
-                    if (tokenGuid) parmQueryStringArray.push("tokenGuid=" + tokenGuid);
-                }
-
-                // TODO: Consider moving this to the custom header array
-                if (options.$select) parmQueryStringArray.push("$select=" + options.$select);
-                //if (options.$captcha) parmQueryStringArray.push("$captcha=" + options.$captcha);
-                if (options.$captcha) {
-                    customHeaders["captcha-val"] = options.$captcha;
-                }
-
-            }
-
-            var parmQueryString = parmQueryStringArray.join("&");
-
-            if (parmQueryString && parmQueryString.length > 0 && parmQueryString != "") parmQueryString = "?" + parmQueryString;
-            else parmQueryString = "";
-
-            if (jsDALServer.overridingDbSource) dbSource = jsDALServer.overridingDbSource;
-
-            if (jsDALServer.applicationTitle) {
-                //parmQueryStringArray.push("$at=" + encodeURIComponent(jsDALServer.applicationTitle));
-                customHeaders["App-Title"] = jsDALServer.applicationTitle;
-            }
-
-            if (["exec", "execnq", "execScalar", "batch"].indexOf(execFunction) == -1) {
-                throw new Error(`Invalid execution method specified: ${execFunction}`);
-            }
-
-            // GET
-            if (httpMethod == "GET") {
-                let headers = null;
-
-                if (customHeaders && Object.keys(customHeaders).length > 0) {
-                    if (headers == null) headers = {};
-                    for (let e in customHeaders) {
-                        headers[e] = customHeaders[e];
-                    }
-                }
-
-                let init = null;
-
-                if (headers) {
-                    init = { headers: headers };
-                }
-
-                fetchWrap(`${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}${parmQueryString}`, init, alwaysCBs)
-                    .then(r => { return checkHttpStatus(r, options); })
-                    .then(parseJSON)
-                    .then(transformResults)
-                    .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(r => resolve(r))
-                ["catch"](r => { reject(fetchCatch(r, options)); return r; })
-                ["catch"](function (e) {
-                    if (e instanceof ApiResponseEndThenChain) return;
-                    else throw e;
-                })
-                    ;
-            }
-            else if (httpMethod == "POST") {
-                var bodyContent = {};
-
-                mappedParams.forEach(p => { bodyContent[p] = options[p]; });
-
-                if (tokenGuid) bodyContent["tokenGuid"] = tokenGuid;
-
-                let headers = {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                };
-
-                for (let e in customHeaders) {
-                    headers[e] = customHeaders[e];
-                }
-
-                let postUrl: string = null;
-
-                if (execFunction == "batch") {
-                    postUrl = `${jsDALServer.serverUrl}/api/${execFunction}/${jsDALServer.dbConnection}`;
-                }
-                else {
-                    postUrl = `${jsDALServer.serverUrl}/api/${execFunction}/${dbSource}/${jsDALServer.dbConnection}/${schema}/${routine}`;
-                }
-                fetchWrap(postUrl
-                    , {
-                        method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify(bodyContent)
-                    }, alwaysCBs)
-                    .then(r => { return checkHttpStatus(r, options); })
-                    .then(parseJSON)
-                    .then(transformResults)
-                    .ifthen(options.AutoProcessApiResponse, processApiResponse)
-                    .then(r => resolve(r))
-                ["catch"](r => { reject(fetchCatch(r, options)); })
-                ["catch"](function (e) {
-                    if (e instanceof ApiResponseEndThenChain) return;
-                    else throw e;
-                })
-                    ;
-            }
-            else throw "Invalid HTTP method: " + httpMethod;
-
-        });
-    }
-
-    function fetchWrap(url: string | Request
+    static fetchWrap(url: string | Request
         , init?: RequestInit | any
         , alwaysCBs?: ((res: any) => any)[]): any | Promise<Response> {
 
@@ -242,7 +288,6 @@ export module jsDAL {
 
                 init.headers["Authorization"] = `Bearer ${jsDALServer.jwt.access_token}`;
             }
-
 
             // iOS prefers undefined over null
             if (init == null) init = undefined;
@@ -259,61 +304,28 @@ export module jsDAL {
             }).then(r => {
                 resolve(<any>r);
 
-                if (alwaysCBs) callAlwaysCallbacks(r, alwaysCBs);
+                if (alwaysCBs) Exec.callAlwaysCallbacks(r, alwaysCBs);
 
                 return r;
             });
         });
     }
 
-    function callAlwaysCallbacks(result: any, alwaysCBs?: ((res: any) => any)[]) {
-
+    static callAlwaysCallbacks(result: any, alwaysCBs?: ((res: any) => any)[]) {
         if (!alwaysCBs || alwaysCBs.length == 0) return result;
 
         alwaysCBs.forEach(cb => {
-
             if (typeof cb === "function") {
-
                 cb.call(this, result);
-                //cb.call
             }
 
         });
     }
 
-    export function transformResults(r) {
-
-        if (typeof (r.Data) === "undefined") return r;
-
-        for (var e in r.Data) {
-
-            if (!(e.substring(0, 5) == "Table")) continue;
-
-            var dt = r.Data[e];
-
-            var transformed = [];
-
-            for (var rowIx = 0; rowIx < dt.Data.length; rowIx++) {
-
-                var newRowObject = {};
-
-                for (var colIx = 0; colIx < dt.Data[rowIx].length; colIx++) {
-                    // TODO: Add support for DateTime fields?
-                    newRowObject[dt.Fields[colIx].name] = dt.Data[rowIx][colIx];
-                }
-
-                transformed.push(newRowObject);
-            }
-
-            r.Data[e] = transformed;
-        }
-
-        return r;
-    }
-
-    function checkHttpStatus(response: Response | any, options?: IExecDefaults): any {
+    static checkHttpStatus(response: Response | any, options?: IExecDefaults): any {
 
         response.hasReachedResponse = true;
+
         if (response.status >= 200 && response.status < 300) {
             return response;
         } else {
@@ -348,22 +360,24 @@ export module jsDAL {
         }
     }
 
-    function parseJSON(response) {
-        return response.json().then((json) => {
+    static parseJSON(response) {
+        return response.json().then((json:string) => {
             // if still a string after parsing once and it *looks* like json...
-            if (typeof (json) === "string" && (<any>json).startsWith("{") && (<any>json).endsWith("}")) return JSON.parse(json);
+            if (typeof (json) === "string" && json.startsWith("{") && json.endsWith("}")) return JSON.parse(json);
             return json;
         });
     }
 
-    function fetchCatch(ex: any, options?: IExecDefaults) {
-        //console.log("fetch...");
-        //console.info(ex);
+    static fetchCatch(ex: any, options?: IExecDefaults) {
 
         if (ex instanceof ApiResponseEndThenChain) {
             ex.handled = true; //?
             // handle special case where we just threw an exception(ApiResponseEndThenChain) to end any remaining 'thens' on the promise.
             // we have to rethrow to prevent any additional '.then' callbacks from being executed
+            throw ex;
+        }
+        else if (ex instanceof TypeError) // "most likely" network related
+        {
             throw ex;
         }
 
@@ -375,10 +389,10 @@ export module jsDAL {
             if (ex.fetch) fetchDetails = JSON.stringify(ex.fetch);
 
             if (options && options.HandleExceptions) {
-                L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+                L2.handleException(ex, { origin: "fetchCatch", fetch: fetchDetails });
             }
 
-            var msg = ex;
+            var msg = ex.toString();
 
             if (ex.Message) msg = ex.Message;
 
@@ -389,7 +403,7 @@ export module jsDAL {
         return ex;
     }
 
-    function processApiResponse(json): Response {
+    static processApiResponse(json): Response {
 
         // if the result is a string, test for ApiResponse
         if (typeof (json) === "object" && typeof (json.ApiResponseVer) !== "undefined") {
@@ -417,6 +431,21 @@ export module jsDAL {
             return json;
         }
 
+    }
+
+
+    }
+
+    interface IExecGlobalOptions {
+        execFunction: string;
+        httpMethod: string;
+        dbSource?: string,
+        endpoint?: string;
+        schema?: string;
+        routine?: string;
+        mappedParams: any[];
+        options: IExecDefaults;
+        alwaysCBs?: ((res: any) => any)[];
     }
 
     export class Batch {
@@ -451,45 +480,6 @@ export module jsDAL {
             return this;
         }
 
-        /*
-            Sproc:
-
-
-        protected ExecRoutine(execFunction: string, options?: IExecDefaults): Promise<any> {
-
-            if (!execFunction || execFunction == "")
-                throw new Error(`'execFunction' must be specified. Consider using the methods ExecQuery or ExecNonQuery.`);
-
-            // default settings
-            let settings: IExecDefaults = Sproc._exeDefaults;
-
-            var mappedParams: any[] = [];
-
-            options = options || {};
-            this.constructorOptions = this.constructorOptions || {};
-
-
-            options = L2.extend(options, this.constructorOptions);
-            settings = L2.extend(settings, options);
-
-            // look for parameters passed in that match the expected routine parameters
-            if (options && this.routineParams) {
-                mappedParams = this.routineParams.filter(parmName => {
-                    return options[parmName] !== undefined;
-                });
-            }
-
-            if (this.selectFieldsCsv) settings.$select = this.selectFieldsCsv;
-            if (this.captchaVal) settings.$captcha = this.captchaVal;
-
-            let startTick = performance.now();
-            this.isLoading = true;
-
-            return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
-                .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
-        }
-        */
-
         public Exec(options?: IExecDefaults & IExecDefaults): Promise<any> {
             // default settings
             let settings: IExecDefaults = {
@@ -507,7 +497,6 @@ export module jsDAL {
             let startTick = performance.now();
             this.isLoading = true;
 
-
             let batch = [];
 
             for (var ix = 0; ix < this.routineList.length; ix++) {
@@ -519,7 +508,14 @@ export module jsDAL {
             settings["batch-data"] = batch;
             mappedParams.push("batch-data");
 
-            return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
+            ///return ExecGlobal("batch", "POST"/*settings.HttpMethod*/, null, null, null, mappedParams, settings, this._alwaysCallbacks)
+            return Exec.ExecGlobal({
+                execFunction: "batch",
+                httpMethod: "POST",
+                mappedParams: mappedParams,
+                options: settings,
+                alwaysCBs: this._alwaysCallbacks
+            })
                 .then(r => {
                     this.lastExecutionTime = performance.now() - startTick;
                     this.isLoading = false;
@@ -531,7 +527,7 @@ export module jsDAL {
 
                         try {
                             //if (options.AutoProcessApiResponse)
-                            processApiResponse(transformed);
+                            Exec.processApiResponse(transformed);
                         }
                         catch (ex) { /*ignore exceptions*/ }
 
@@ -540,7 +536,6 @@ export module jsDAL {
 
                     return r;
                 });
-
         }
 
 
@@ -673,7 +668,19 @@ export module jsDAL {
             let startTick = performance.now();
             this.isLoading = true;
 
-            return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+            ////return ExecGlobal(execFunction, settings.HttpMethod, this.dbSource, this.schema, this.routine, mappedParams, settings, this._alwaysCallbacks)
+            ////    .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
+
+            return Exec.ExecGlobal({
+                execFunction: execFunction,
+                httpMethod: settings.HttpMethod,
+                dbSource: this.dbSource,
+                schema: this.schema,
+                routine: this.routine,
+                mappedParams: mappedParams,
+                options: settings,
+                alwaysCBs: this._alwaysCallbacks
+            })
                 .then(r => { this.lastExecutionTime = performance.now() - startTick; this.isLoading = false; this.deferred.resolve(r); return r; });
         }
 

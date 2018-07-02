@@ -279,7 +279,7 @@ var L2 = (function () {
         return new Promise(function (resolve, reject) {
             // PL: Temp hack when we are running with ng serve
             if (window.location.port == '4200')
-                url = 'http://localhost:9086' + url;
+                url = 'https://jsdal.europassistance.co.za' + url;
             var jwt = BrowserStore.session("jwt");
             // if  a JWT exists, use it
             if (jwt != null) {
@@ -347,6 +347,7 @@ var jsDALServer = (function () {
         jsDALServer.dbConnection = options.dbConnection;
         jsDALServer.jwt = options.jwt;
         jsDALServer.overridingDbSource = options.overridingDbSource;
+        jsDALServer.endpoint = options.endpoint;
         jsDALServer.applicationTitle = options.applicationTitle;
     };
     return jsDALServer;

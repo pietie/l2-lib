@@ -369,7 +369,7 @@ export class L2 {
         return <any>new Promise<Response>((resolve, reject) => {
 
             // PL: Temp hack when we are running with ng serve
-            if (window.location.port == '4200') url = 'http://localhost:9086' + url;
+            if (window.location.port == '4200') url = 'https://jsdal.europassistance.co.za' + url;
 
             var jwt = BrowserStore.session<any>("jwt");
 
@@ -464,6 +464,7 @@ export class jsDALServer {
     //}
     public static serverUrl: string;
     public static dbConnection: string;
+    public static endpoint: string;
     public static overridingDbSource: string;
     public static applicationTitle: string;
     public static jwt: JWT;
@@ -476,6 +477,7 @@ export class jsDALServer {
         jsDALServer.dbConnection = options.dbConnection;
         jsDALServer.jwt = options.jwt;
         jsDALServer.overridingDbSource = options.overridingDbSource;
+        jsDALServer.endpoint = options.endpoint;
         jsDALServer.applicationTitle = options.applicationTitle;
     }
 }
@@ -484,6 +486,7 @@ export interface IDALServerOptions {
     serverUrl?: string;
     dbConnection?: string;
     overridingDbSource?: string;
+    endpoint?: string;
     jwt?: JWT;
     applicationTitle?: string;
 }

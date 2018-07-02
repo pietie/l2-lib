@@ -11,7 +11,7 @@ var UI = (function () {
         return val == null || val == "";
     };
     UI.NewCbo = function (options) {
-        // intialise settings with defaults
+        // initialise settings with defaults
         var settings = {
             id: null,
             name: null,
@@ -188,7 +188,6 @@ UI.NewGrid = function (options) {
                 // todo: Specify result set?
                 if (settings.sproc) {
                     var data = settings.data.Data.Table0;
-                    //window.DAL.TransformResults(data);
                     settings.data = data;
                 }
                 // auto generate columns that are not specified
