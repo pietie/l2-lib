@@ -1,4 +1,4 @@
-﻿//import { jsDAL } from "./L2.DAL";
+﻿//import { jsDAL } from "./L2.DAL";test
 
 if (typeof ((<any>Promise).prototype.ifthen) == "undefined") {
     (<any>Promise).prototype.ifthen = function (cond, cb) {
