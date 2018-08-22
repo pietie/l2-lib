@@ -258,7 +258,7 @@ export class UI {
         if (settings.id) $cbo.attr("id", settings.id);
         if (settings.name) $cbo.attr("name", settings.name);
 
-        var waitForData = $.Deferred();
+        let waitForData = $.Deferred();
 
         waitForData.done((settings: NewCboOptions) => {
             // process data

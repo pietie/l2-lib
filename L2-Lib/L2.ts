@@ -1,4 +1,4 @@
-﻿//import { jsDAL } from "./L2.DAL";test
+﻿//import { jsDAL } from "./L2.DAL"
 
 if (typeof ((<any>Promise).prototype.ifthen) == "undefined") {
     (<any>Promise).prototype.ifthen = function (cond, cb) {
@@ -21,7 +21,7 @@ export interface PromiseL2<R> {
 export class ApiResponseEndThenChain {
     handled?: boolean;
 }
- 
+
 enum ApiResponseType {
     Unknown = 0,
     Success = 1,
@@ -131,11 +131,71 @@ class StorageObject {
 
 }
 
-
-
 export class L2 {
 
     private static _customOutputMsgHandler: IL2OutputMessageHandler;
+
+    static prepareBlob(blob: Blob, filename: string = "blob"): Promise<string> & { onprogress?: (func: (progress: number) => void) => Promise<string[]> } {
+
+        let xhr: XMLHttpRequest = new XMLHttpRequest();
+        let listeners: ((progress: number) => void)[];
+        let finalProgressNotified: boolean = false;
+
+        let prom: Promise<string[]> & { onprogress?: (func:(progress:number)=>void)=>Promise<string[]> } = new Promise<string[]>((resolve, reject) => {
+
+            xhr.upload.onprogress = (ev: ProgressEvent) => {
+                let perc = (ev.loaded / ev.total) * 100.0;
+
+                if (perc == 100 && finalProgressNotified) return;
+                if (perc == 100 && !finalProgressNotified) finalProgressNotified = true;
+
+                if (listeners) listeners.forEach(l => l(perc));
+            };
+
+            xhr.upload.onload = (ev: Event) => {
+                if (!finalProgressNotified) {
+                    finalProgressNotified = true;
+                    if (listeners) listeners.forEach(l => l(100));
+                }
+            };
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // we expect JSON on a 200 request
+                        // TODO: add try catch though for when its NOT JSON????
+                        let json: { Data?: string[] } = JSON.parse(xhr.response);
+
+                        if (json.Data && json.Data.length > 0) {
+                            resolve(json.Data);
+                        }
+                        else {
+                            resolve(null);
+                        }                        
+
+                    } else {
+                        reject(xhr.response);
+                    }
+                }
+            };
+
+            xhr.open('POST', `${jsDALServer.serverUrl}/api/blob`, true);
+
+            let formData = new FormData();
+            formData.append(filename, blob);
+            xhr.send(formData);
+        });
+      
+        
+        prom.onprogress = (func: (progress: number) => void) => {
+            if (!listeners) listeners = [];
+            listeners.push(func);
+            return prom;
+        }
+
+        return <any>prom;
+    }
+
 
     public static BrowserStore: {
         local<T>(key: string, value?: T): T,

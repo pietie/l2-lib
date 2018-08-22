@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-var KeyValueStore = (function () {
+var KeyValueStore = /** @class */ (function () {
     function KeyValueStore() {
     }
     // todo: Have IndexDB backend with fallback to Browser local storage!

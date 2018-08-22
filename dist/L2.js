@@ -1,5 +1,5 @@
 "use strict";
-//import { jsDAL } from "./L2.DAL";
+//import { jsDAL } from "./L2.DAL"
 exports.__esModule = true;
 if (typeof (Promise.prototype.ifthen) == "undefined") {
     Promise.prototype.ifthen = function (cond, cb) {
@@ -13,7 +13,7 @@ if (typeof (Promise.prototype.ifthen) == "undefined") {
     };
 }
 // TODO: There is now a lot of overlap between L2 and L2.DAL. Make L2.DAL call L2 where overlap occurs? 
-var ApiResponseEndThenChain = (function () {
+var ApiResponseEndThenChain = /** @class */ (function () {
     function ApiResponseEndThenChain() {
     }
     return ApiResponseEndThenChain;
@@ -28,12 +28,12 @@ var ApiResponseType;
     ApiResponseType[ApiResponseType["Error"] = 30] = "Error";
     ApiResponseType[ApiResponseType["Exception"] = 40] = "Exception";
 })(ApiResponseType || (ApiResponseType = {}));
-var ApiResponse = (function () {
+var ApiResponse = /** @class */ (function () {
     function ApiResponse() {
     }
     return ApiResponse;
 }());
-var BrowserStore = (function () {
+var BrowserStore = /** @class */ (function () {
     function BrowserStore() {
     }
     BrowserStore.local = function (key, value) {
@@ -72,17 +72,17 @@ var BrowserStore = (function () {
             }
         }
     };
+    //    private static removeItemVal = {};
+    BrowserStore.removeSessionItem = function (key) {
+        window.sessionStorage.removeItem(key);
+    };
+    BrowserStore.removeLocalItem = function (key) {
+        window.localStorage.removeItem(key);
+    };
     return BrowserStore;
 }());
-//    private static removeItemVal = {};
-BrowserStore.removeSessionItem = function (key) {
-    window.sessionStorage.removeItem(key);
-};
-BrowserStore.removeLocalItem = function (key) {
-    window.localStorage.removeItem(key);
-};
 exports.BrowserStore = BrowserStore;
-var StorageObject = (function () {
+var StorageObject = /** @class */ (function () {
     function StorageObject(val) {
         this.isValueAndObject = (typeof val === "object");
         this.value = val;
@@ -96,9 +96,62 @@ var StorageObject = (function () {
     };
     return StorageObject;
 }());
-var L2 = (function () {
+var L2 = /** @class */ (function () {
     function L2() {
     }
+    L2.prepareBlob = function (blob, filename) {
+        if (filename === void 0) { filename = "blob"; }
+        var xhr = new XMLHttpRequest();
+        var listeners;
+        var finalProgressNotified = false;
+        var prom = new Promise(function (resolve, reject) {
+            xhr.upload.onprogress = function (ev) {
+                var perc = (ev.loaded / ev.total) * 100.0;
+                if (perc == 100 && finalProgressNotified)
+                    return;
+                if (perc == 100 && !finalProgressNotified)
+                    finalProgressNotified = true;
+                if (listeners)
+                    listeners.forEach(function (l) { return l(perc); });
+            };
+            xhr.upload.onload = function (ev) {
+                if (!finalProgressNotified) {
+                    finalProgressNotified = true;
+                    if (listeners)
+                        listeners.forEach(function (l) { return l(100); });
+                }
+            };
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // we expect JSON on a 200 request
+                        // TODO: add try catch though for when its NOT JSON????
+                        var json = JSON.parse(xhr.response);
+                        if (json.Data && json.Data.length > 0) {
+                            resolve(json.Data);
+                        }
+                        else {
+                            resolve(null);
+                        }
+                    }
+                    else {
+                        reject(xhr.response);
+                    }
+                }
+            };
+            xhr.open('POST', jsDALServer.serverUrl + "/api/blob", true);
+            var formData = new FormData();
+            formData.append(filename, blob);
+            xhr.send(formData);
+        });
+        prom.onprogress = function (func) {
+            if (!listeners)
+                listeners = [];
+            listeners.push(func);
+            return prom;
+        };
+        return prom;
+    };
     L2.registerOutputMessageHandler = function (handler) {
         L2._customOutputMsgHandler = handler;
     };
@@ -337,7 +390,7 @@ var L2 = (function () {
     return L2;
 }());
 exports.L2 = L2;
-var jsDALServer = (function () {
+var jsDALServer = /** @class */ (function () {
     function jsDALServer() {
     }
     jsDALServer.configure = function (options) {

@@ -22,12 +22,12 @@ var jsDAL;
         ApiResponseType[ApiResponseType["Error"] = 30] = "Error";
         ApiResponseType[ApiResponseType["Exception"] = 40] = "Exception";
     })(ApiResponseType || (ApiResponseType = {}));
-    var ApiResponse = (function () {
+    var ApiResponse = /** @class */ (function () {
         function ApiResponse() {
         }
         return ApiResponse;
     }());
-    var ApiResponseEndThenChain = (function () {
+    var ApiResponseEndThenChain = /** @class */ (function () {
         function ApiResponseEndThenChain() {
         }
         return ApiResponseEndThenChain;
@@ -64,7 +64,7 @@ var jsDAL;
         return r;
     }
     jsDAL.transformResults = transformResults;
-    var Exec = (function () {
+    var Exec = /** @class */ (function () {
         function Exec() {
         }
         Exec.ExecGlobal = function (exec) {
@@ -303,7 +303,8 @@ var jsDAL;
                 // we have to rethrow to prevent any additional '.then' callbacks from being executed
                 throw ex;
             }
-            else if (ex instanceof TypeError) {
+            else if (ex instanceof TypeError) // "most likely" network related
+             {
                 throw ex;
             }
             if (typeof (ex.hasReachedResponse) == "undefined" || !ex.hasReachedResponse) {
@@ -312,9 +313,9 @@ var jsDAL;
                 if (ex.fetch)
                     fetchDetails = JSON.stringify(ex.fetch);
                 if (options && options.HandleExceptions) {
-                    L2_1.L2.handleException(new Error(JSON.stringify(ex)), { origin: "fetchCatch", fetch: fetchDetails });
+                    L2_1.L2.handleException(ex, { origin: "fetchCatch", fetch: fetchDetails });
                 }
-                var msg = ex;
+                var msg = ex.toString();
                 if (ex.Message)
                     msg = ex.Message;
                 return msg;
@@ -346,7 +347,7 @@ var jsDAL;
         };
         return Exec;
     }());
-    var Batch = (function () {
+    var Batch = /** @class */ (function () {
         function Batch() {
             var routines = [];
             for (var _i = 0; _i < arguments.length; _i++) {
@@ -408,7 +409,7 @@ var jsDAL;
                         //if (options.AutoProcessApiResponse)
                         Exec.processApiResponse(transformed);
                     }
-                    catch (ex) { }
+                    catch (ex) { /*ignore exceptions*/ }
                     routine.deferred.resolve(transformed);
                 }
                 return r;
@@ -417,7 +418,7 @@ var jsDAL;
         return Batch;
     }());
     jsDAL.Batch = Batch;
-    var Deferred = (function () {
+    var Deferred = /** @class */ (function () {
         function Deferred() {
             var _this = this;
             this.promise = new Promise(function (resolve, reject) {
@@ -428,7 +429,7 @@ var jsDAL;
         return Deferred;
     }());
     jsDAL.Deferred = Deferred;
-    var Sproc /*implements Thenable<any>*/ = (function () {
+    var Sproc = /** @class */ (function () {
         function Sproc(schema, routine, params, options) {
             // TODO: turn this into a GET property
             this.deferred = null;
@@ -561,17 +562,17 @@ var jsDAL;
             this.captchaVal = captchaResponseValue;
             return this;
         };
+        Sproc._exeDefaults = {
+            AutoSetTokenGuid: true,
+            AutoProcessApiResponse: true,
+            HandleExceptions: true,
+            ShowPageLoadingIndicator: true,
+            CommandTimeoutInSeconds: 60
+        };
         return Sproc;
     }());
-    Sproc._exeDefaults = {
-        AutoSetTokenGuid: true,
-        AutoProcessApiResponse: true,
-        HandleExceptions: true,
-        ShowPageLoadingIndicator: true,
-        CommandTimeoutInSeconds: 60
-    };
     jsDAL.Sproc = Sproc;
-    var UDF = (function (_super) {
+    var UDF = /** @class */ (function (_super) {
         __extends(UDF, _super);
         function UDF() {
             return _super !== null && _super.apply(this, arguments) || this;
@@ -588,15 +589,15 @@ var jsDAL;
         return UDF;
     }(Sproc));
     jsDAL.UDF = UDF;
-    var ServerVariables = (function () {
+    var ServerVariables = /** @class */ (function () {
         function ServerVariables() {
         }
         ServerVariables.ClientIP = function () {
             return ServerVariables.PREFIX_MARKER + ".RemoteClient.IP";
         };
+        ServerVariables.PREFIX_MARKER = "$jsDAL$";
         return ServerVariables;
     }());
-    ServerVariables.PREFIX_MARKER = "$jsDAL$";
     jsDAL.ServerVariables = ServerVariables;
 })(jsDAL = exports.jsDAL || (exports.jsDAL = {}));
 //export default jsDAL;
